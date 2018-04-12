@@ -1,91 +1,27 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-tools/go-steputils/stepconf"
+	"github.com/bitrise-tools/go-steputils/tools"
+	"github.com/trapacska/bitrise-step-build-router-start/bitrise"
 )
 
-func startBuild(appSlug, accessToken, workflow string, buildParams json.RawMessage) (response ResponseModel, err error) {
-	var ed map[string]interface{}
-	err = json.Unmarshal(buildParams, &ed)
-	if err != nil {
-		return
-	}
-	ed["workflow_id"] = workflow
+const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
 
-	edB, err := json.Marshal(ed)
-	if err != nil {
-		return
-	}
-
-	rm := RequestModel{HookInfo: HookInfoModel{Type: "bitrise"}, BuildParams: edB}
-	bJSON, err := json.Marshal(rm)
-	if err != nil {
-		return
-	}
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.bitrise.io/v0.1/apps/%s/builds", appSlug), bytes.NewReader(bJSON))
-	if err != nil {
-		return
-	}
-	req.Header.Add("Authorization", "token "+accessToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return response, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
-	}
-
-	err = json.Unmarshal(respBody, &response)
-	if err != nil {
-		return response, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
-	}
-	return
-}
-
-func getBuildInfo(appSlug, buildSlug, accessToken string) (build BuildResponseItemModel, err error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://api.bitrise.io/v0.1/apps/%s/builds/%s", appSlug, buildSlug), nil)
-	if err != nil {
-		return
-	}
-
-	req.Header.Add("Authorization", "token "+accessToken)
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return build, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
-	}
-
-	err = json.Unmarshal(respBody, &build)
-	if err != nil {
-		return build, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
-	}
-	return
+// Config ...
+type Config struct {
+	AppSlug       string          `env:"BITRISE_APP_SLUG,required"`
+	BuildSlug     string          `env:"BITRISE_BUILD_SLUG,required"`
+	BuildNumber   string          `env:"BITRISE_BUILD_NUMBER,required"`
+	AccessToken   stepconf.Secret `env:"access_token,required"`
+	WaitForBuilds string          `env:"wait_for_builds"`
+	Workflows     string          `env:"workflows,required"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -94,59 +30,76 @@ func failf(s string, a ...interface{}) {
 }
 
 func main() {
-	// get current build infos
-	appSlug := os.Getenv("BITRISE_APP_SLUG")
-	buildSlug := os.Getenv("BITRISE_BUILD_SLUG")
-	accessToken := os.Getenv("BITRISE_ACCESS_TOKEN")
+	var cfg Config
+	if err := stepconf.Parse(&cfg); err != nil {
+		failf("Issue with an input: %s", err)
+	}
 
-	build, err := getBuildInfo(appSlug, buildSlug, accessToken)
+	stepconf.Print(cfg)
+	fmt.Println()
+
+	app := bitrise.NewApp(cfg.AppSlug, string(cfg.AccessToken))
+
+	build, err := app.GetBuild(cfg.BuildSlug)
 	if err != nil {
 		failf("failed to get build, error: %s", err)
 	}
 
-	builds := map[string]BuildResponseItemModel{}
+	var buildSlugs []string
 
 	log.Infof("Starting builds:")
 
-	for _, wf := range strings.Split(os.Getenv("workflows"), "\n") {
-		startedBuild, err := startBuild(appSlug, accessToken, wf, build.Data.OriginalBuildParams)
+	for _, wf := range strings.Split(cfg.Workflows, "\n") {
+		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber)
 		if err != nil {
-			failf("failed to start build, error: %s", err)
+			failf("Failed to start build, error: %s", err)
 		}
-		builds[startedBuild.BuildSlug] = BuildResponseItemModel{}
+		buildSlugs = append(buildSlugs, startedBuild.BuildSlug)
 		log.Donef("- %s(%s) started", startedBuild.BuildSlug, startedBuild.TriggeredWorkflow)
 	}
 
-	failed := false
+	if err := tools.ExportEnvironmentWithEnvman(envBuildSlugs, strings.Join(buildSlugs, "\n")); err != nil {
+		failf("Failed to export environment variable, error: %s", err)
+	}
 
+	if cfg.WaitForBuilds != "true" {
+		return
+	}
+
+	fmt.Println()
 	log.Infof("Waiting for builds:")
+
+	failed := false
 	for {
 		ct := 0
-		for bSlug := range builds {
-			builds[bSlug], err = getBuildInfo(appSlug, bSlug, accessToken)
+		for i, buildSlug := range buildSlugs {
+			build, err := app.GetBuild(buildSlug)
 			if err != nil {
 				failf("failed to get build info, error: %s", err)
 			}
-			if builds[bSlug].Data.Status == 0 {
+			if build.Status == 0 {
 				ct++
 			} else {
-				switch builds[bSlug].Data.Status {
+				switch build.Status {
 				case 1:
-					log.Donef("- %s(%s) successful", builds[bSlug].Data.Slug, builds[bSlug].Data.TriggeredWorkflow)
+					log.Donef("- %s(%s) successful", build.Slug, build.TriggeredWorkflow)
 					break
 				case 2:
 					failed = true
-					log.Errorf("- %s(%s) failed", builds[bSlug].Data.Slug, builds[bSlug].Data.TriggeredWorkflow)
+					log.Errorf("- %s(%s) failed", build.Slug, build.TriggeredWorkflow)
 					break
 				case 3:
-					log.Warnf("- %s(%s) aborted", builds[bSlug].Data.Slug, builds[bSlug].Data.TriggeredWorkflow)
+					log.Warnf("- %s(%s) aborted", build.Slug, build.TriggeredWorkflow)
 					break
 				}
-				delete(builds, bSlug)
+
+				if len(buildSlugs) > 0 {
+					buildSlugs = append(buildSlugs[:i], buildSlugs[i+1:]...)
+				}
 			}
 		}
 		if ct == 0 {
-			log.Donef("all builds finished")
+			log.Donef("All builds finished")
 			break
 		}
 

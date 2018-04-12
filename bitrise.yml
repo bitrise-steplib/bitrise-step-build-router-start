@@ -1,8 +1,14 @@
 format_version: 5
 
+envs:
+  - TEST_WORKFLOWS: $TEST_WORKFLOWS
+  - ACCESS_TOKEN: $ACCESS_TOKEN
+
 workflows:
   test:
     steps:
     - path::./:
         inputs:
-        - workflows: "test1\ntest3\ntest2"
+        - workflows: $TEST_WORKFLOWS
+        - access_token: $ACCESS_TOKEN
+        - wait_for_builds: "true"
