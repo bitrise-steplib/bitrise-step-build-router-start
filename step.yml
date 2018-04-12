@@ -2,12 +2,12 @@ title: "Build Router: Start Workflows"
 summary: "Build Router: Start Workflows"
 description: "Build Router: Start Workflows"
 website: https://github.com/trapacska/bitrise-step-build-router-start
-source_code_url: https://github.com/trapacska/bitrise-step-build-router-wait
-support_url: https://github.com/trapacska/bitrise-step-build-router-wait/issues
+source_code_url: https://github.com/trapacska/bitrise-step-build-router-start
+support_url: https://github.com/trapacska/bitrise-step-build-router-start/issues
 
 toolkit:
   go:
-    package_name: github.com/trapacska/bitrise-step-build-router-wait
+    package_name: github.com/trapacska/bitrise-step-build-router-start
 
 inputs:
   - workflows:
@@ -16,3 +16,9 @@ inputs:
       summary: The workflow(s) to start. One workflow per line.
       description: The workflow(s) to start. One workflow per line.
       is_required: true
+outputs:
+  - BITRISE_STARTED_BUILDS:
+    opts:
+      title: "Newline separated list of started build slugs"
+      summary: "Newline separated list of started build slugs"
+      description: "Newline separated list of started build slugs"
