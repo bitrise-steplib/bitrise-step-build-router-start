@@ -1,0 +1,18 @@
+title: "Build Router: Start Workflows"
+summary: "Build Router: Start Workflows"
+description: "Build Router: Start Workflows"
+website: https://github.com/trapacska/bitrise-step-build-router-start
+source_code_url: https://github.com/trapacska/bitrise-step-build-router-wait
+support_url: https://github.com/trapacska/bitrise-step-build-router-wait/issues
+
+toolkit:
+  go:
+    package_name: github.com/trapacska/bitrise-step-build-router-wait
+
+inputs:
+  - workflows:
+    opts:
+      title: Workflows
+      summary: The workflow(s) to start. One workflow per line.
+      description: The workflow(s) to start. One workflow per line.
+      is_required: true

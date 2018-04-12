@@ -1,0 +1,8 @@
+format_version: 5
+
+workflows:
+  test:
+    steps:
+    - path::./:
+        inputs:
+        - workflows: "test1\ntest3\ntest2"

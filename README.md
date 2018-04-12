@@ -1,1 +1,1 @@
-# bitrise-step-build-router
+# bitrise-step-build-router-wait
