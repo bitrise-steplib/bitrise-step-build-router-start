@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 // App ...
@@ -103,4 +104,46 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
 	return response, nil
+}
+
+func remove(slice []string, what string) (b []string) {
+	for _, s := range slice {
+		if s != what {
+			b = append(b, s)
+		}
+	}
+	return
+}
+
+// WaitForBuilds ...
+func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(build Build)) error {
+	failed := false
+	for {
+		running := 0
+		for _, buildSlug := range buildSlugs {
+			build, err := app.GetBuild(buildSlug)
+			if err != nil {
+				return fmt.Errorf("failed to get build info, error: %s", err)
+			}
+
+			if build.Status == 0 {
+				running++
+				continue
+			}
+
+			failed = build.Status != 1
+
+			statusChangeCallback(build)
+
+			buildSlugs = remove(buildSlugs, buildSlug)
+		}
+		if running == 0 {
+			break
+		}
+		time.Sleep(time.Second * 3)
+	}
+	if failed {
+		return fmt.Errorf("at least one build failed or aborted")
+	}
+	return nil
 }

@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/bitrise-io/go-utils/log"
+	"github.com/bitrise-steplib/bitrise-step-build-router-start/bitrise"
 	"github.com/bitrise-tools/go-steputils/stepconf"
 	"github.com/bitrise-tools/go-steputils/tools"
-	"github.com/trapacska/bitrise-step-build-router-start/bitrise"
 )
 
 const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
@@ -45,17 +44,16 @@ func main() {
 		failf("failed to get build, error: %s", err)
 	}
 
-	var buildSlugs []string
-
 	log.Infof("Starting builds:")
 
+	var buildSlugs []string
 	for _, wf := range strings.Split(cfg.Workflows, "\n") {
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
 		}
 		buildSlugs = append(buildSlugs, startedBuild.BuildSlug)
-		log.Donef("- %s(%s) started", startedBuild.BuildSlug, startedBuild.TriggeredWorkflow)
+		log.Printf("- %s started (https://www.bitrise.io/build/%s)", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug)
 	}
 
 	if err := tools.ExportEnvironmentWithEnvman(envBuildSlugs, strings.Join(buildSlugs, "\n")); err != nil {
@@ -69,44 +67,16 @@ func main() {
 	fmt.Println()
 	log.Infof("Waiting for builds:")
 
-	failed := false
-	for {
-		ct := 0
-		for i, buildSlug := range buildSlugs {
-			build, err := app.GetBuild(buildSlug)
-			if err != nil {
-				failf("failed to get build info, error: %s", err)
-			}
-			if build.Status == 0 {
-				ct++
-			} else {
-				switch build.Status {
-				case 1:
-					log.Donef("- %s(%s) successful", build.Slug, build.TriggeredWorkflow)
-					break
-				case 2:
-					failed = true
-					log.Errorf("- %s(%s) failed", build.Slug, build.TriggeredWorkflow)
-					break
-				case 3:
-					log.Warnf("- %s(%s) aborted", build.Slug, build.TriggeredWorkflow)
-					break
-				}
-
-				if len(buildSlugs) > 0 {
-					buildSlugs = append(buildSlugs[:i], buildSlugs[i+1:]...)
-				}
-			}
+	if err := app.WaitForBuilds(buildSlugs, func(build bitrise.Build) {
+		switch build.Status {
+		case 1:
+			log.Donef("- %s successful (https://www.bitrise.io/build/%s)", build.TriggeredWorkflow, build.Slug)
+		case 2:
+			log.Errorf("- %s failed (https://www.bitrise.io/build/%s)", build.TriggeredWorkflow, build.Slug)
+		case 3:
+			log.Warnf("- %s aborted (https://www.bitrise.io/build/%s)", build.TriggeredWorkflow, build.Slug)
 		}
-		if ct == 0 {
-			log.Donef("All builds finished")
-			break
-		}
-
-		time.Sleep(time.Second * 3)
-	}
-
-	if failed {
-		os.Exit(1)
+	}); err != nil {
+		failf("An error occoured: %s", err)
 	}
 }
