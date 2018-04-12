@@ -1,6 +1,6 @@
 title: "Build Router: Start Workflows"
-summary: "Build Router: Start Workflows"
-description: "Build Router: Start Workflows"
+summary: "Will start the given workflows in the same app. This step will work with the minimum of 2 concurrent builds."
+description: "Will start the given workflows in the same app. This step will work with the minimum of 2 concurrent builds."
 website: https://github.com/trapacska/bitrise-step-build-router-start
 source_code_url: https://github.com/trapacska/bitrise-step-build-router-start
 support_url: https://github.com/trapacska/bitrise-step-build-router-start/issues
