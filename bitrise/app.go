@@ -118,6 +118,7 @@ func remove(slice []string, what string) (b []string) {
 // WaitForBuilds ...
 func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(build Build)) error {
 	failed := false
+	status := map[string]string{}
 	for {
 		running := 0
 		for _, buildSlug := range buildSlugs {
@@ -126,14 +127,17 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 				return fmt.Errorf("failed to get build info, error: %s", err)
 			}
 
+			if status[buildSlug] != build.StatusText {
+				statusChangeCallback(build)
+				status[buildSlug] = build.StatusText
+			}
+
 			if build.Status == 0 {
 				running++
 				continue
 			}
 
 			failed = build.Status != 1
-
-			statusChangeCallback(build)
 
 			buildSlugs = remove(buildSlugs, buildSlug)
 		}
