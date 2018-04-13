@@ -70,8 +70,16 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 				"mapped_to": "SOURCE_BITRISE_BUILD_NUMBER",
 				"value":     buildNumber,
 			})
+	}else{
+		bParams["environments"] = []interface{}{
+			map[string]interface{}{
+				"is_expand": true,
+				"mapped_to": "SOURCE_BITRISE_BUILD_NUMBER",
+				"value":     buildNumber,
+			},
+		}
 	}
-
+	
 	buildParams, err = json.Marshal(bParams)
 	if err != nil {
 		return StartResponse{}, nil
