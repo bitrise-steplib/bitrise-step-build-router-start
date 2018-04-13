@@ -61,6 +61,7 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, err
 	}
 	bParams["workflow_id"] = workflow
+	bParams["skip_git_status_report"] = true
 
 	if envs, ok := bParams["environments"].([]interface{}); ok {
 		bParams["environments"] = append(envs,
