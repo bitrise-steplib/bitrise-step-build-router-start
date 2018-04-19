@@ -1,6 +1,6 @@
 # Build Router: Start Workflows
 
-Will start the given workflows in the same app.
+Starts the given workflows in the same app.
 
 ## How to use this Step
 
