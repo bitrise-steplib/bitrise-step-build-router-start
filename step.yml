@@ -22,8 +22,12 @@ inputs:
   - access_token:
     opts:
       title: Bitrise Access Token
-      summary: Your access token that has access to the app in you want to run workflows. To acquire a Personal Access Token for your user, sign in with that user on bitrise.io, go to your Account Settings page, and select the Security tab on the left side.
-      description: Your access token that has access to the app in you want to run workflows. To acquire a Personal Access Token for your user, sign in with that user on bitrise.io, go to your Account Settings page, and select the Security tab on the left side.
+      summary: Your access token that has access to the app in you want to run workflows.
+      description: |
+          Your access token that has access to the app in you want to run workflows.
+          
+          To acquire a Personal Access Token for your user, sign in with that user on [bitrise.io](https://bitrise.io),  
+          go to your Account Settings page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
       is_required: true
   - workflows:
     opts:
