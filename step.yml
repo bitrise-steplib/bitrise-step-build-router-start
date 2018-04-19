@@ -1,6 +1,6 @@
-title: "Build Router: Start Workflows"
-summary: "Will start the given workflows in the same app."
-description: "Will start the given workflows in the same app."
+title: "Bitrise Start Build"
+summary: "Starts the given workflows in the same app"
+description: ""Starts the given workflows in the same app"
 website: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 source_code_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 support_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start/issues
@@ -11,7 +11,7 @@ host_os_tags:
 type_tags:
   - utility
 
-is_always_run: true
+is_always_run: false
 is_skippable: false
 
 toolkit:
@@ -22,8 +22,8 @@ inputs:
   - access_token:
     opts:
       title: Bitrise Access Token
-      summary: Your access token that has access to the app in you want to run workflows.
-      description: Your access token that has access to the app in you want to run workflows.
+      summary: Your access token that has access to the app in you want to run workflows. To acquire a Personal Access Token for your user, sign in with that user on bitrise.io, go to your Account Settings page, and select the Security tab on the left side.
+      description: Your access token that has access to the app in you want to run workflows. To acquire a Personal Access Token for your user, sign in with that user on bitrise.io, go to your Account Settings page, and select the Security tab on the left side.
       is_required: true
   - workflows:
     opts:

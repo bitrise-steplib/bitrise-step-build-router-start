@@ -9,17 +9,42 @@ import (
 	"time"
 )
 
+// Build ...
+type Build struct {
+	Slug                string          `json:"slug"`
+	Status              int             `json:"status"`
+	StatusText          string          `json:"status_text"`
+	BuildNumber         int64           `json:"build_number"`
+	TriggeredWorkflow   string          `json:"triggered_workflow"`
+	OriginalBuildParams json.RawMessage `json:"original_build_params"`
+}
+
+type buildResponse struct {
+	Data Build `json:"data"`
+}
+
+type hookInfo struct {
+	Type string `json:"type"`
+}
+
+type startRequest struct {
+	HookInfo    hookInfo        `json:"hook_info"`
+	BuildParams json.RawMessage `json:"build_params"`
+}
+
+// StartResponse ...
+type StartResponse struct {
+	Status            string `json:"message"`
+	Message           string `json:"status"`
+	BuildSlug         string `json:"build_slug"`
+	BuildNumber       int    `json:"build_number"`
+	BuildURL          string `json:"build_url"`
+	TriggeredWorkflow string `json:"triggered_workflow"`
+}
+
 // App ...
 type App struct {
 	Slug, AccessToken string
-}
-
-// NewApp ...
-func NewApp(appSlug, accessToken string) App {
-	return App{
-		Slug:        appSlug,
-		AccessToken: accessToken,
-	}
 }
 
 // GetBuild ...
@@ -46,8 +71,7 @@ func (app App) GetBuild(buildSlug string) (Build, error) {
 	}
 
 	var build buildResponse
-	err = json.Unmarshal(respBody, &build)
-	if err != nil {
+	if err := json.Unmarshal(respBody, &build); err != nil {
 		return Build{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
 	return build.Data, nil
@@ -55,13 +79,12 @@ func (app App) GetBuild(buildSlug string) (Build, error) {
 
 // StartBuild ...
 func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNumber string) (StartResponse, error) {
-	var bParams map[string]interface{}
-	err := json.Unmarshal(buildParams, &bParams)
-	if err != nil {
+	var params map[string]interface{}
+	if err := json.Unmarshal(buildParams, &params); err != nil {
 		return StartResponse{}, err
 	}
-	bParams["workflow_id"] = workflow
-	bParams["skip_git_status_report"] = true
+	params["workflow_id"] = workflow
+	params["skip_git_status_report"] = true
 
 	sourceBuildNumber := map[string]interface{}{
 		"is_expand": true,
@@ -69,24 +92,24 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		"value":     buildNumber,
 	}
 
-	if envs, ok := bParams["environments"].([]interface{}); ok {
-		bParams["environments"] = append(envs, sourceBuildNumber)
+	if envs, ok := params["environments"].([]interface{}); ok {
+		params["environments"] = append(envs, sourceBuildNumber)
 	} else {
-		bParams["environments"] = []interface{}{sourceBuildNumber}
+		params["environments"] = []interface{}{sourceBuildNumber}
 	}
 
-	buildParams, err = json.Marshal(bParams)
+	b, err := json.Marshal(params)
 	if err != nil {
 		return StartResponse{}, nil
 	}
 
-	rm := StartRequest{HookInfo: HookInfo{Type: "bitrise"}, BuildParams: buildParams}
-	bodyJSON, err := json.Marshal(rm)
+	rm := startRequest{HookInfo: hookInfo{Type: "bitrise"}, BuildParams: b}
+	b, err = json.Marshal(rm)
 	if err != nil {
 		return StartResponse{}, nil
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.bitrise.io/v0.1/apps/%s/builds", app.Slug), bytes.NewReader(bodyJSON))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("https://api.bitrise.io/v0.1/apps/%s/builds", app.Slug), bytes.NewReader(b))
 	if err != nil {
 		return StartResponse{}, nil
 	}
@@ -113,15 +136,6 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 	return response, nil
 }
 
-func remove(slice []string, what string) (b []string) {
-	for _, s := range slice {
-		if s != what {
-			b = append(b, s)
-		}
-	}
-	return
-}
-
 // WaitForBuilds ...
 func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(build Build)) error {
 	failed := false
@@ -144,7 +158,9 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 				continue
 			}
 
-			failed = build.Status != 1
+			if build.Status != 1 {
+				failed = true
+			}
 
 			buildSlugs = remove(buildSlugs, buildSlug)
 		}
@@ -157,4 +173,13 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 		return fmt.Errorf("at least one build failed or aborted")
 	}
 	return nil
+}
+
+func remove(slice []string, what string) (b []string) {
+	for _, s := range slice {
+		if s != what {
+			b = append(b, s)
+		}
+	}
+	return
 }
