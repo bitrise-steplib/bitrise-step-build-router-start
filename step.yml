@@ -1,6 +1,6 @@
 title: "Bitrise Start Build"
 summary: "Starts the given workflows in the same app"
-description: ""Starts the given workflows in the same app"
+description: "Starts the given workflows in the same app"
 website: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 source_code_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 support_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start/issues
