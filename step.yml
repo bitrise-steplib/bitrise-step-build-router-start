@@ -22,12 +22,12 @@ inputs:
   - access_token:
     opts:
       title: Bitrise Access Token
-      summary: Your access token that has access to the app in you want to run workflows.
+      summary: Your access token
       description: |
-          Your access token that has access to the app in you want to run workflows.
+          Your access token
           
-          To acquire a Personal Access Token for your user, sign in with that user on [bitrise.io](https://bitrise.io),  
-          go to your Account Settings page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
+          To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io),  
+          go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
       is_required: true
   - workflows:
     opts:
@@ -38,8 +38,8 @@ inputs:
   - wait_for_builds: "false"
     opts:
       title: Wait for builds
-      summary: Shall the step wait for the builds to be finished?
-      description: Shall the step wait for the builds to be finished?
+      summary: Should the step wait for the builds to be finished?
+      description: Should the step wait for the builds to be finished?
       is_required: false
       value_options:
         - "false"
