@@ -4,9 +4,6 @@ description: "Starts the given workflows in the same app"
 website: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 source_code_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 support_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start/issues
-host_os_tags:
-  - osx-10.10
-  - ubuntu-16.04
 
 type_tags:
   - utility
@@ -29,6 +26,8 @@ inputs:
           To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io),  
           go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
       is_required: true
+      is_expand: true
+      is_sensitive: true
   - workflows:
     opts:
       title: Workflows
