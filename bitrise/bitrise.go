@@ -42,6 +42,12 @@ type StartResponse struct {
 	TriggeredWorkflow string `json:"triggered_workflow"`
 }
 
+// Environment ...
+type Environment struct {
+	MappedTo string `json:"mapped_to"`
+	Value    string `json:"value"`
+}
+
 // App ...
 type App struct {
 	Slug, AccessToken string
@@ -78,7 +84,7 @@ func (app App) GetBuild(buildSlug string) (Build, error) {
 }
 
 // StartBuild ...
-func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNumber string) (StartResponse, error) {
+func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNumber string, environments []Environment) (StartResponse, error) {
 	var params map[string]interface{}
 	if err := json.Unmarshal(buildParams, &params); err != nil {
 		return StartResponse{}, err
@@ -92,10 +98,15 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		"value":     buildNumber,
 	}
 
+	var envs []interface{}
 	if envs, ok := params["environments"].([]interface{}); ok {
 		params["environments"] = append(envs, sourceBuildNumber)
 	} else {
 		params["environments"] = []interface{}{sourceBuildNumber}
+	}
+
+	if len(environments) > 0 {
+		params["environments"] = append(envs, environments)
 	}
 
 	b, err := json.Marshal(params)

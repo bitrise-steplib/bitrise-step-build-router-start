@@ -34,6 +34,23 @@ inputs:
       summary: The workflow(s) to start. One workflow per line.
       description: The workflow(s) to start. One workflow per line.
       is_required: true
+  - environment_key_list:
+    opts:
+      title: Environments to share
+      summary: The keys of the envs which will be shared with the triggered workflows.
+      description: |-
+        The keys of the envs which will be shared with the triggered workflows
+
+        
+        **FORMAT** Seperate the keys `\n` character. E.g: 
+        `ENV_1
+        ENV_2
+        ENV_3`
+
+        
+        **NOTE** You can list the variables with the leading `$` or without it.
+      is_expand: false
+      is_required: false
   - wait_for_builds: "false"
     opts:
       title: Wait for builds

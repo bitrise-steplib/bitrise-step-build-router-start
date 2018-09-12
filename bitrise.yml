@@ -12,6 +12,11 @@ app:
 
 workflows:
   test:
+    envs:
+    - ENV_1: "1"
+    - ENV_2: "2"
+    - ENV_3: "3"
+    - ENV_4: "4"
     before_run:
     - audit-this-step
     steps:
@@ -24,6 +29,7 @@ workflows:
         - workflows: $TEST_WORKFLOWS
         - access_token: $ACCESS_TOKEN
         - wait_for_builds: "true"
+        - environment_key_list: "ENV_1\nENV_2\n$ENV_3\n$ENV_4\n"
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
