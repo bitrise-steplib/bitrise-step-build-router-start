@@ -46,9 +46,6 @@ inputs:
         `ENV_1
         ENV_2
         ENV_3`
-
-        
-        **NOTE** You can list the variables with the leading `$` or without it.
       is_expand: false
       is_required: false
   - wait_for_builds: "false"
