@@ -21,6 +21,7 @@ type Config struct {
 	AccessToken   stepconf.Secret `env:"access_token,required"`
 	WaitForBuilds string          `env:"wait_for_builds"`
 	Workflows     string          `env:"workflows,required"`
+	Environments  string          `env:"environment_key_list"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -50,8 +51,9 @@ func main() {
 	log.Infof("Starting builds:")
 
 	var buildSlugs []string
+	environments := createEnvs(cfg.Environments)
 	for _, wf := range strings.Split(cfg.Workflows, "\n") {
-		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber)
+		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
 		}
@@ -86,4 +88,23 @@ func main() {
 	}); err != nil {
 		failf("An error occoured: %s", err)
 	}
+}
+
+func createEnvs(environmentKeys string) []bitrise.Environment {
+	environmentKeys = strings.Replace(environmentKeys, "$", "", -1)
+	environmentsKeyList := strings.Split(environmentKeys, "\n")
+
+	var environments []bitrise.Environment
+	for _, key := range environmentsKeyList {
+		if key == "" {
+			continue
+		}
+
+		env := bitrise.Environment{
+			MappedTo: key,
+			Value:    os.Getenv(key),
+		}
+		environments = append(environments, env)
+	}
+	return environments
 }
