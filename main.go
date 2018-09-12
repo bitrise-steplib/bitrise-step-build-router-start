@@ -97,7 +97,7 @@ func createEnvs(environmentKeys string) []bitrise.Environment {
 	var environments []bitrise.Environment
 	for _, key := range environmentsKeyList {
 		if key == "" {
-			break
+			continue
 		}
 
 		env := bitrise.Environment{
