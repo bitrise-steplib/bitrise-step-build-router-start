@@ -21,7 +21,7 @@ func Test_createEnvs(t *testing.T) {
 		{
 			name:            "one env",
 			environmentKeys: "ENV_1",
-			want:            []bitrise.Environment{bitrise.Environment{MappedTo: "ENV_1", Value: ""}},
+			want:            []bitrise.Environment{bitrise.Environment{MappedTo: "ENV_1", Value: "1"}},
 		},
 		{
 			name:            "multiple env",
@@ -29,19 +29,19 @@ func Test_createEnvs(t *testing.T) {
 			want: []bitrise.Environment{
 				bitrise.Environment{
 					MappedTo: "ENV_1",
-					Value:    "",
+					Value:    "1",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_2",
-					Value:    "",
+					Value:    "2",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_3",
-					Value:    "",
+					Value:    "3",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_4",
-					Value:    "",
+					Value:    "4",
 				},
 			},
 		},
@@ -51,19 +51,19 @@ func Test_createEnvs(t *testing.T) {
 			want: []bitrise.Environment{
 				bitrise.Environment{
 					MappedTo: "ENV_1",
-					Value:    "",
+					Value:    "1",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_2",
-					Value:    "",
+					Value:    "2",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_3",
-					Value:    "",
+					Value:    "3",
 				},
 				bitrise.Environment{
 					MappedTo: "ENV_4",
-					Value:    "",
+					Value:    "4",
 				},
 			},
 		},
