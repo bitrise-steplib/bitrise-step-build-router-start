@@ -92,22 +92,13 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 	params["workflow_id"] = workflow
 	params["skip_git_status_report"] = true
 
-	sourceBuildNumber := map[string]interface{}{
-		"is_expand": true,
-		"mapped_to": "SOURCE_BITRISE_BUILD_NUMBER",
-		"value":     buildNumber,
+	sourceBuildNumber := Environment{
+		MappedTo: "SOURCE_BITRISE_BUILD_NUMBER",
+		Value:    buildNumber,
 	}
 
-	var envs []interface{}
-	if envs, ok := params["environments"].([]interface{}); ok {
-		params["environments"] = append(envs, sourceBuildNumber)
-	} else {
-		params["environments"] = []interface{}{sourceBuildNumber}
-	}
-
-	if len(environments) > 0 {
-		params["environments"] = append(envs, environments)
-	}
+	envs := []Environment{sourceBuildNumber}
+	params["environments"] = append(envs, environments...)
 
 	b, err := json.Marshal(params)
 	if err != nil {
