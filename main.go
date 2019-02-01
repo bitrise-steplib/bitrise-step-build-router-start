@@ -52,8 +52,8 @@ func main() {
 
 	var buildSlugs []string
 	environments := createEnvs(cfg.Environments)
-	trimmed := strings.TrimSpace(cfg.Workflows)
-	for _, wf := range strings.Split(trimmed, "\n") {
+	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
+		wf = strings.TrimSpace(wf)
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
