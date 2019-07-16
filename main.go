@@ -59,7 +59,7 @@ func main() {
 			failf("Failed to start build, error: %s", err)
 		}
 		buildSlugs = append(buildSlugs, startedBuild.BuildSlug)
-		log.Printf("- %s started (https://www.bitrise.io/build/%s)", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug)
+		log.Printf("- %s started (https://app.bitrise.io/build/%s)", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug)
 	}
 
 	if err := tools.ExportEnvironmentWithEnvman(envBuildSlugs, strings.Join(buildSlugs, "\n")); err != nil {
