@@ -38,10 +38,7 @@ func main() {
 	stepconf.Print(cfg)
 	fmt.Println()
 
-	app := bitrise.App{
-		Slug:        cfg.AppSlug,
-		AccessToken: string(cfg.AccessToken),
-	}
+	app := bitrise.NewAppWithDefaultURL(cfg.AppSlug, string(cfg.AccessToken))
 
 	build, err := app.GetBuild(cfg.BuildSlug)
 	if err != nil {
