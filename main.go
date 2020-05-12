@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-steplib/bitrise-step-build-router-start/bitrise"
-	"github.com/bitrise-tools/go-steputils/stepconf"
-	"github.com/bitrise-tools/go-steputils/tools"
 )
 
 const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
