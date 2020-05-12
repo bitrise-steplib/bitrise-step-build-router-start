@@ -57,6 +57,14 @@ inputs:
       value_options:
         - "false"
         - "true"
+  - verbose: "no"
+    opts:
+      title: Enable verbose log?
+      description: |-
+        You can enable the verbose log for easier debugging.
+      value_options:
+        - "yes"
+        - "no"
 outputs:
   - ROUTER_STARTED_BUILD_SLUGS:
     opts:

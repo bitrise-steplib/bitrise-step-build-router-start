@@ -22,6 +22,7 @@ type Config struct {
 	WaitForBuilds string          `env:"wait_for_builds"`
 	Workflows     string          `env:"workflows,required"`
 	Environments  string          `env:"environment_key_list"`
+	IsVerboseLog  bool            `env:"verbose"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -37,6 +38,8 @@ func main() {
 
 	stepconf.Print(cfg)
 	fmt.Println()
+
+	log.SetEnableDebugLog(cfg.IsVerboseLog)
 
 	app := bitrise.NewAppWithDefaultURL(cfg.AppSlug, string(cfg.AccessToken))
 

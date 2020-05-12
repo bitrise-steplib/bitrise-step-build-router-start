@@ -25,10 +25,10 @@ func TestApp_GetBuild(t *testing.T) {
 		{
 			name: "Retry test",
 			app: App{
-				BaseURL:     server.URL,
-				Slug:        "aaa",
-				AccessToken: "bbb",
-				IsDebug:     true,
+				BaseURL:             server.URL,
+				Slug:                "aaa",
+				AccessToken:         "bbb",
+				IsDebugRetryTimings: true,
 			},
 			buildSlug: "ccc",
 			want:      Build{},

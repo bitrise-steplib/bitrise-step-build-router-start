@@ -54,9 +54,8 @@ type Environment struct {
 
 // App ...
 type App struct {
-	BaseURL           string
-	Slug, AccessToken string
-	IsDebug           bool
+	BaseURL, Slug, AccessToken string
+	IsDebugRetryTimings        bool
 }
 
 // NewAppWithDefaultURL returns a Bitrise client with the default URl
@@ -75,7 +74,7 @@ type RetryLogAdaptor struct{}
 func (*RetryLogAdaptor) Printf(fmtStr string, vars ...interface{}) {
 	switch {
 	case strings.HasPrefix(fmtStr, "[DEBUG]"):
-		log.Printf(strings.TrimSpace(fmtStr[7:]), vars...)
+		log.Debugf(strings.TrimSpace(fmtStr[7:]), vars...)
 	case strings.HasPrefix(fmtStr, "[ERR]"):
 		log.Errorf(strings.TrimSpace(fmtStr[5:]), vars...)
 	case strings.HasPrefix(fmtStr, "[ERROR]"):
@@ -90,14 +89,14 @@ func (*RetryLogAdaptor) Printf(fmtStr string, vars ...interface{}) {
 }
 
 // NewRetryableClient returns a retryable HTTP client
-// isDebug sets the timeouts shoreter for testing purposes
-func NewRetryableClient(isDebug bool) *retryablehttp.Client {
+// isDebugRetryTimings sets the timeouts shoreter for testing purposes
+func NewRetryableClient(isDebugRetryTimings bool) *retryablehttp.Client {
 	client := retryablehttp.NewClient()
 	client.CheckRetry = retryablehttp.DefaultRetryPolicy
 	client.Backoff = retryablehttp.DefaultBackoff
 	client.Logger = &RetryLogAdaptor{}
 	client.ErrorHandler = retryablehttp.PassthroughErrorHandler
-	if !isDebug {
+	if !isDebugRetryTimings {
 		client.RetryWaitMin = 10 * time.Second
 		client.RetryWaitMax = 60 * time.Second
 		client.RetryMax = 5
@@ -124,7 +123,7 @@ func (app App) GetBuild(buildSlug string) (build Build, err error) {
 		return Build{}, fmt.Errorf("failed to create retryable request: %s", err)
 	}
 
-	client := NewRetryableClient(app.IsDebug)
+	client := NewRetryableClient(app.IsDebugRetryTimings)
 
 	resp, err := client.Do(retryReq)
 	if err != nil {
@@ -192,7 +191,7 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, fmt.Errorf("failed to create retryable request: %s", err)
 	}
 
-	retryClient := NewRetryableClient(app.IsDebug)
+	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
 
 	resp, err := retryClient.Do(retryReq)
 	if err != nil {
