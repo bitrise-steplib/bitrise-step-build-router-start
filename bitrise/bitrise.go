@@ -59,6 +59,7 @@ type App struct {
 	IsDebug           bool
 }
 
+// NewAppWithDefaultURL returns a Bitrise client with the default URl
 func NewAppWithDefaultURL(slug, accessToken string) App {
 	return App{
 		BaseURL:     "https://api.bitrise.io",
@@ -67,8 +68,10 @@ func NewAppWithDefaultURL(slug, accessToken string) App {
 	}
 }
 
+// RetryLogAdaptor adapts the retryablehttp.Logger interface to the go-utils logger.
 type RetryLogAdaptor struct{}
 
+// Printf implements the retryablehttp.Logger interface
 func (*RetryLogAdaptor) Printf(fmtStr string, vars ...interface{}) {
 	switch {
 	case strings.HasPrefix(fmtStr, "[DEBUG]"):
@@ -86,6 +89,8 @@ func (*RetryLogAdaptor) Printf(fmtStr string, vars ...interface{}) {
 	}
 }
 
+// NewRetryableClient returns a retryable HTTP client
+// isDebug sets the timeouts shoreter for testing purposes
 func NewRetryableClient(isDebug bool) *retryablehttp.Client {
 	client := retryablehttp.NewClient()
 	client.CheckRetry = retryablehttp.DefaultRetryPolicy
