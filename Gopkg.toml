@@ -1,6 +1,19 @@
+
 [[constraint]]
-  name = "github.com/bitrise-io/go-utils"
   branch = "master"
+  name = "github.com/bitrise-io/go-steputils"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/bitrise-io/go-utils"
+
+[[constraint]]
+  name = "github.com/hashicorp/go-retryablehttp"
+  version = "0.6.6"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.5.1"
 
 [prune]
   go-tests = true

@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-steplib/bitrise-step-build-router-start/bitrise"
-	"github.com/bitrise-tools/go-steputils/stepconf"
-	"github.com/bitrise-tools/go-steputils/tools"
 )
 
 const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
@@ -22,6 +22,7 @@ type Config struct {
 	WaitForBuilds string          `env:"wait_for_builds"`
 	Workflows     string          `env:"workflows,required"`
 	Environments  string          `env:"environment_key_list"`
+	IsVerboseLog  bool            `env:"verbose,required"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -38,10 +39,9 @@ func main() {
 	stepconf.Print(cfg)
 	fmt.Println()
 
-	app := bitrise.App{
-		Slug:        cfg.AppSlug,
-		AccessToken: string(cfg.AccessToken),
-	}
+	log.SetEnableDebugLog(cfg.IsVerboseLog)
+
+	app := bitrise.NewAppWithDefaultURL(cfg.AppSlug, string(cfg.AccessToken))
 
 	build, err := app.GetBuild(cfg.BuildSlug)
 	if err != nil {

@@ -30,6 +30,7 @@ workflows:
         - access_token: $ACCESS_TOKEN
         - wait_for_builds: "true"
         - environment_key_list: "ENV_1\nENV_2\n$ENV_3\n$ENV_4\n"
+        - verbose: "yes"
 
   test_shared_envs:
     steps:
