@@ -22,7 +22,7 @@ type Config struct {
 	WaitForBuilds string          `env:"wait_for_builds"`
 	Workflows     string          `env:"workflows,required"`
 	Environments  string          `env:"environment_key_list"`
-	IsVerboseLog  bool            `env:"verbose"`
+	IsVerboseLog  bool            `env:"verbose,required"`
 }
 
 func failf(s string, a ...interface{}) {

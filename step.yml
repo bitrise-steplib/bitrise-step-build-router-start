@@ -62,6 +62,7 @@ inputs:
       title: Enable verbose log?
       description: |-
         You can enable the verbose log for easier debugging.
+      is_required: true
       value_options:
         - "yes"
         - "no"
