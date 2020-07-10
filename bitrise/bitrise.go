@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -44,6 +46,27 @@ type StartResponse struct {
 	BuildNumber       int    `json:"build_number"`
 	BuildURL          string `json:"build_url"`
 	TriggeredWorkflow string `json:"triggered_workflow"`
+}
+
+// BuildArtifactsResponse ...
+type BuildArtifactsResponse struct {
+	ArtifactSlugs []BuildArtifactSlug `json:"data"`
+}
+
+// BuildArtifactSlug ...
+type BuildArtifactSlug struct {
+	ArtifactSlug string `json:"slug"`
+}
+
+// BuildArtifactResponse ...
+type BuildArtifactResponse struct {
+	Artifact BuildArtifact `json:"data"`
+}
+
+// BuildArtifact ...
+type BuildArtifact struct {
+	DownloadURL string `json:"expiring_download_url"`
+	Title       string `json:"title"`
 }
 
 // Environment ...
@@ -218,6 +241,108 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
 	return response, nil
+}
+
+// GetBuildArtifacts ...
+func (app App) GetBuildArtifacts(buildSlug string) (buildArtifactsResponse BuildArtifactsResponse, err error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts", app.BaseURL, app.Slug, buildSlug), nil)
+	if err != nil {
+		return BuildArtifactsResponse{}, nil
+	}
+	req.Header.Add("Authorization", "token "+app.AccessToken)
+
+	retryReq, err := retryablehttp.FromRequest(req)
+	if err != nil {
+		return BuildArtifactsResponse{}, fmt.Errorf("failed to create retryable request: %s", err)
+	}
+
+	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
+
+	resp, err := retryClient.Do(retryReq)
+	if err != nil {
+		return BuildArtifactsResponse{}, nil
+	}
+
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return BuildArtifactsResponse{}, nil
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return BuildArtifactsResponse{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
+	}
+
+	var response BuildArtifactsResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return BuildArtifactsResponse{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
+	}
+	return response, nil
+}
+
+// GetBuildArtifact ...
+func (app App) GetBuildArtifact(buildSlug string, artifactSlug string) (buildArtifactResponse BuildArtifactResponse, err error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts/%s", app.BaseURL, app.Slug, buildSlug, artifactSlug), nil)
+	if err != nil {
+		return BuildArtifactResponse{}, nil
+	}
+	req.Header.Add("Authorization", "token "+app.AccessToken)
+
+	retryReq, err := retryablehttp.FromRequest(req)
+	if err != nil {
+		return BuildArtifactResponse{}, fmt.Errorf("failed to create retryable request: %s", err)
+	}
+
+	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
+
+	resp, err := retryClient.Do(retryReq)
+	if err != nil {
+		return BuildArtifactResponse{}, nil
+	}
+
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return BuildArtifactResponse{}, nil
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return BuildArtifactResponse{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
+	}
+
+	var response BuildArtifactResponse
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return BuildArtifactResponse{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
+	}
+	return response, nil
+}
+
+// DownloadArtifact ...
+func (app App) DownloadArtifact(filepath string, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
 
 // WaitForBuilds ...
