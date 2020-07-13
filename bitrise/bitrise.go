@@ -333,13 +333,23 @@ func (app App) DownloadArtifact(filepath string, url string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Println("Failed to close body, error:", err)
+		}
+	}()
 
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+
+	defer func() {
+		if err := out.Close(); err != nil {
+			fmt.Println("Failed to close output stream, error:", err)
+		}
+	}()
 
 	_, err = io.Copy(out, resp.Body)
 	return err
