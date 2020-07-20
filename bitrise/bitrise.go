@@ -244,8 +244,8 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 }
 
 // GetBuildArtifacts ...
-func (app App) GetBuildArtifacts(buildSlug string) (buildArtifactsResponse BuildArtifactsResponse, err error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts", app.BaseURL, app.Slug, buildSlug), nil)
+func (build Build) GetBuildArtifacts(app App) (buildArtifactsResponse BuildArtifactsResponse, err error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts", app.BaseURL, app.Slug, build.Slug), nil)
 	if err != nil {
 		return BuildArtifactsResponse{}, nil
 	}
@@ -286,8 +286,8 @@ func (app App) GetBuildArtifacts(buildSlug string) (buildArtifactsResponse Build
 }
 
 // GetBuildArtifact ...
-func (app App) GetBuildArtifact(buildSlug string, artifactSlug string) (buildArtifactResponse BuildArtifactResponse, err error) {
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts/%s", app.BaseURL, app.Slug, buildSlug, artifactSlug), nil)
+func (build Build) GetBuildArtifact(app App, artifactSlug string) (buildArtifactResponse BuildArtifactResponse, err error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/artifacts/%s", app.BaseURL, app.Slug, build.Slug, artifactSlug), nil)
 	if err != nil {
 		return BuildArtifactResponse{}, nil
 	}
@@ -328,8 +328,8 @@ func (app App) GetBuildArtifact(buildSlug string, artifactSlug string) (buildArt
 }
 
 // DownloadArtifact ...
-func (app App) DownloadArtifact(filepath string, url string) error {
-	resp, err := http.Get(url)
+func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
+	resp, err := http.Get(artifact.DownloadURL)
 	if err != nil {
 		return err
 	}
