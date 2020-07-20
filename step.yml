@@ -57,6 +57,14 @@ inputs:
       value_options:
         - "false"
         - "true"
+  - build_artifacts_save_path:
+    opts:
+      title: Path to save the Artifacts in (leave empty to not save artifacts)
+      summary: This is where the artifacts will be saved to if wait_for_builds == true
+      description: |
+          This is where the artifacts will be saved to so you can access them in the workflow
+      is_required: false
+      is_sensitive: false
   - verbose: "no"
     opts:
       title: Enable verbose log?
