@@ -15,14 +15,15 @@ const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
 
 // Config ...
 type Config struct {
-	AppSlug       string          `env:"BITRISE_APP_SLUG,required"`
-	BuildSlug     string          `env:"BITRISE_BUILD_SLUG,required"`
-	BuildNumber   string          `env:"BITRISE_BUILD_NUMBER,required"`
-	AccessToken   stepconf.Secret `env:"access_token,required"`
-	WaitForBuilds string          `env:"wait_for_builds"`
-	Workflows     string          `env:"workflows,required"`
-	Environments  string          `env:"environment_key_list"`
-	IsVerboseLog  bool            `env:"verbose,required"`
+	AppSlug                string          `env:"BITRISE_APP_SLUG,required"`
+	BuildSlug              string          `env:"BITRISE_BUILD_SLUG,required"`
+	BuildNumber            string          `env:"BITRISE_BUILD_NUMBER,required"`
+	AccessToken            stepconf.Secret `env:"access_token,required"`
+	WaitForBuilds          string          `env:"wait_for_builds"`
+	BuildArtifactsSavePath string          `env:"build_artifacts_save_path"`
+	Workflows              string          `env:"workflows,required"`
+	Environments           string          `env:"environment_key_list"`
+	IsVerboseLog           bool            `env:"verbose,required"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -85,6 +86,26 @@ func main() {
 			log.Warnf("- %s aborted", build.TriggeredWorkflow)
 		case 4:
 			log.Infof("- %s cancelled", build.TriggeredWorkflow)
+		}
+		if build.Status != 0 {
+			if strings.TrimSpace(cfg.BuildArtifactsSavePath) != "" {
+				artifactsResponse, err := build.GetBuildArtifacts(app)
+				if err != nil {
+					log.Warnf("failed to get build artifacts, error: %s", err)
+				}
+				for _, artifactSlug := range artifactsResponse.ArtifactSlugs {
+					artifactObj, err := build.GetBuildArtifact(app, artifactSlug.ArtifactSlug)
+					if err != nil {
+						log.Warnf("failed to get build artifact, error: %s", err)
+					}
+
+					downloadErr := artifactObj.Artifact.DownloadArtifact(strings.TrimSpace(cfg.BuildArtifactsSavePath) + artifactObj.Artifact.Title)
+					if downloadErr != nil {
+						log.Warnf("failed to download artifact, error: %s", downloadErr)
+					}
+					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + strings.TrimSpace(cfg.BuildArtifactsSavePath))
+				}
+			}
 		}
 	}); err != nil {
 		failf("An error occoured: %s", err)
