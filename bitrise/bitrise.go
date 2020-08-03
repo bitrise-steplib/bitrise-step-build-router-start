@@ -409,7 +409,7 @@ func (build Build) AbortBuild(app App, abortReason string) error {
 		return fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
 	}
 
-	if err := json.Unmarshal(respBody, &response); err != nil {
+	if err := json.Unmarshal(respBody); err != nil {
 		return fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
 	return nil
