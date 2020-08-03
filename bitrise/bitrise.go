@@ -52,12 +52,6 @@ type abortRequest struct {
 	BuildAbortParams json.RawMessage `json:"build-abort-params"`
 }
 
-// AbortResponse ...
-type AbortResponse struct {
-	Status  string `json:"message"`
-	Message string `json:"status"`
-}
-
 // BuildArtifactsResponse ...
 type BuildArtifactsResponse struct {
 	ArtifactSlugs []BuildArtifactSlug `json:"data"`
@@ -366,7 +360,7 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 }
 
 // AbortBuild ...
-func (build Build) AbortBuild(app App, abortReason string) (AbortResponse, error) {
+func (build Build) AbortBuild(app App, abortReason string) error {
 	var params map[string]interface{}
 	params["abort_reason"] = abortReason
 	params["abort_with_success"] = false
@@ -374,30 +368,30 @@ func (build Build) AbortBuild(app App, abortReason string) (AbortResponse, error
 
 	b, err := json.Marshal(params)
 	if err != nil {
-		return AbortResponse{}, nil
+		return nil
 	}
 	rm := abortRequest{BuildAbortParams: b}
 	b, err = json.Marshal(rm)
 	if err != nil {
-		return AbortResponse{}, nil
+		return nil
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, build.Slug), bytes.NewReader(b))
 	if err != nil {
-		return AbortResponse{}, nil
+		return nil
 	}
 	req.Header.Add("Authorization", "token "+app.AccessToken)
 
 	retryReq, err := retryablehttp.FromRequest(req)
 	if err != nil {
-		return AbortResponse{}, fmt.Errorf("failed to create retryable request: %s", err)
+		return fmt.Errorf("failed to create retryable request: %s", err)
 	}
 
 	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
 
 	resp, err := retryClient.Do(retryReq)
 	if err != nil {
-		return AbortResponse{}, nil
+		return nil
 	}
 
 	defer func() {
@@ -408,18 +402,17 @@ func (build Build) AbortBuild(app App, abortReason string) (AbortResponse, error
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return AbortResponse{}, nil
+		return nil
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return AbortResponse{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
+		return fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
 	}
 
-	var response AbortResponse
 	if err := json.Unmarshal(respBody, &response); err != nil {
-		return AbortResponse{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
+		return fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
-	return response, nil
+	return nil
 }
 
 // WaitForBuilds ...
