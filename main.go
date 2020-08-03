@@ -94,7 +94,7 @@ func main() {
 		}
 
 		if cfg.AbortBuildsOnFail == "yes" && build.Status != 0 && build.Status != 1 {
-			abortErr := build.AbortBuild(app, "Build https://app.bitrise.io/build/"+build+" "+failReason+" triggering this build to abort")
+			abortErr := build.AbortBuild(app, "Build https://app.bitrise.io/build/"+build.slug+" "+failReason+" triggering this build to abort")
 			if abortErr != nil {
 				log.Warnf("failed to abort build, error: %s", abortErr)
 			}

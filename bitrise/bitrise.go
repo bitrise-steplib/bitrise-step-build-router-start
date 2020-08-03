@@ -48,6 +48,10 @@ type StartResponse struct {
 	TriggeredWorkflow string `json:"triggered_workflow"`
 }
 
+type abortRequest struct {
+	BuildAbortParams json.RawMessage `json:"build-abort-params"`
+}
+
 // AbortResponse ...
 type AbortResponse struct {
 	Status  string `json:"message"`
@@ -364,9 +368,9 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 // AbortBuild ...
 func (build Build) AbortBuild(app App, abortReason string) (AbortResponse, error) {
 	rm := abortRequest{build - abort - params: {abort_reason: abortReason, abort_with_success: false, skip_notifications: false}}
-	b, err = json.Marshal(rm)
+	b, err := json.Marshal(rm)
 	if err != nil {
-		return StartResponse{}, nil
+		return AbortResponse{}, nil
 	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, build.Slug), bytes.NewReader(b))
