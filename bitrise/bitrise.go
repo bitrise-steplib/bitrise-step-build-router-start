@@ -368,19 +368,16 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 // AbortBuild ...
 func (build Build) AbortBuild(app App, abortReason string) (AbortResponse, error) {
 	var params map[string]interface{}
-	if err := json.Unmarshal(buildParams, &params); err != nil {
-		return AbortResponse{}, err
-	}
 	params["abort_reason"] = abortReason
 	params["abort_with_success"] = false
 	params["skip_notifications"] = true
 
-	b, err = json.Marshal(params)
+	b, err := json.Marshal(params)
 	if err != nil {
-		return StartResponse{}, nil
+		return AbortResponse{}, nil
 	}
 	rm := abortRequest{BuildAbortParams: b}
-	b, err := json.Marshal(rm)
+	b, err = json.Marshal(rm)
 	if err != nil {
 		return AbortResponse{}, nil
 	}
