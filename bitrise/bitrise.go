@@ -408,10 +408,6 @@ func (build Build) AbortBuild(app App, abortReason string) error {
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
 	}
-
-	if err := json.Unmarshal(respBody); err != nil {
-		return fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
-	}
 	return nil
 }
 
