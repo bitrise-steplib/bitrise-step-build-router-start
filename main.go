@@ -84,18 +84,18 @@ func main() {
 			log.Donef("- %s successful", build.TriggeredWorkflow)
 		case 2:
 			log.Errorf("- %s failed", build.TriggeredWorkflow)
-			failReason = "Failed"
+			failReason = "failed"
 		case 3:
 			log.Warnf("- %s aborted", build.TriggeredWorkflow)
-			failReason = "Aborted"
+			failReason = "aborted"
 		case 4:
 			log.Infof("- %s cancelled", build.TriggeredWorkflow)
-			failReason = "Cancelled"
+			failReason = "cancelled"
 		}
 
 		if cfg.AbortBuildsOnFail == "yes" && build.Status != 0 && build.Status != 1 {
 			for _, buildSlug := range buildSlugs {
-				abortErr := app.AbortBuild(buildSlug, "Build https://app.bitrise.io/build/"+build.Slug+" "+failReason+" triggering build https://app.bitrise.io/build/"+buildSlug+" to abort")
+				abortErr := app.AbortBuild(buildSlug, "Abort on Fail - Build [https://app.bitrise.io/build/"+build.Slug+"] "+failReason+"\nAuto aborted by parent build")
 				if abortErr != nil {
 					log.Warnf("failed to abort build, error: %s", abortErr)
 				}
