@@ -49,7 +49,9 @@ type StartResponse struct {
 }
 
 type abortRequest struct {
-	BuildAbortParams json.RawMessage `json:"build-abort-params"`
+	AbortReason       string `json:"abort_reason"`
+	AbortWithSuccess  bool   `json:"abort_with_success"`
+	SkipNotifications bool   `json:"skip_notifications"`
 }
 
 // BuildArtifactsResponse ...
@@ -367,11 +369,6 @@ func (app App) AbortBuild(buildSlug string, abortReason string) error {
 	params["skip_notifications"] = true
 
 	b, err := json.Marshal(params)
-	if err != nil {
-		return nil
-	}
-	rm := abortRequest{BuildAbortParams: b}
-	b, err = json.Marshal(rm)
 	if err != nil {
 		return nil
 	}
