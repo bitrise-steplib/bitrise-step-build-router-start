@@ -361,7 +361,7 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 
 // AbortBuild ...
 func (app App) AbortBuild(buildSlug string, abortReason string) error {
-	var params map[string]interface{}
+	params := make(map[string])
 	params["abort_reason"] = abortReason
 	params["abort_with_success"] = false
 	params["skip_notifications"] = true
