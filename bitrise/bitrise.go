@@ -48,12 +48,6 @@ type StartResponse struct {
 	TriggeredWorkflow string `json:"triggered_workflow"`
 }
 
-type abortRequest struct {
-	AbortReason       string `json:"abort_reason"`
-	AbortWithSuccess  bool   `json:"abort_with_success"`
-	SkipNotifications bool   `json:"skip_notifications"`
-}
-
 // BuildArtifactsResponse ...
 type BuildArtifactsResponse struct {
 	ArtifactSlugs []BuildArtifactSlug `json:"data"`
