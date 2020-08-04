@@ -94,11 +94,13 @@ func main() {
 		}
 
 		if cfg.AbortBuildsOnFail == "yes" && build.Status != 0 && build.Status != 1 {
-			abortErr := build.AbortBuild(app, "Build https://app.bitrise.io/build/"+build.Slug+" "+failReason+" triggering this build to abort")
-			if abortErr != nil {
-				log.Warnf("failed to abort build, error: %s", abortErr)
+			for _, buildSlug := range buildSlugs {
+				abortErr := app.AbortBuild(buildSlug, "Build https://app.bitrise.io/build/"+build.Slug+" "+failReason+" triggering build https://app.bitrise.io/build/"+buildSlug+" to abort")
+				if abortErr != nil {
+					log.Warnf("failed to abort build, error: %s", abortErr)
+				}
+				log.Donef("Build " + buildSlug + " aborted due to associated build failure")
 			}
-			log.Donef("Build " + build.Slug + " aborted due to associated build failure")
 		}
 
 		if build.Status != 0 {

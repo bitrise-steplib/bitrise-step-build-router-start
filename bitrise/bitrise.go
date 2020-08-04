@@ -360,7 +360,7 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 }
 
 // AbortBuild ...
-func (build Build) AbortBuild(app App, abortReason string) error {
+func (app App) AbortBuild(buildSlug string, abortReason string) error {
 	var params map[string]interface{}
 	params["abort_reason"] = abortReason
 	params["abort_with_success"] = false
@@ -376,7 +376,7 @@ func (build Build) AbortBuild(app App, abortReason string) error {
 		return nil
 	}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, build.Slug), bytes.NewReader(b))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, buildSlug), bytes.NewReader(b))
 	if err != nil {
 		return nil
 	}
