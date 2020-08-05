@@ -48,6 +48,12 @@ type StartResponse struct {
 	TriggeredWorkflow string `json:"triggered_workflow"`
 }
 
+type buildAbortParams struct {
+	AbortReason       string `json:"abort_reason"`
+	AbortWithSucces   bool   `json:"abort_with_success"`
+	SkipNotifications bool   `json:"skip_notifications"`
+}
+
 // BuildArtifactsResponse ...
 type BuildArtifactsResponse struct {
 	ArtifactSlugs []BuildArtifactSlug `json:"data"`
@@ -357,15 +363,10 @@ func (artifact BuildArtifact) DownloadArtifact(filepath string) error {
 
 // AbortBuild ...
 func (app App) AbortBuild(buildSlug string, abortReason string) error {
-	params := make(map[string]interface{})
-	params["abort_reason"] = abortReason
-	params["abort_with_success"] = false
-	params["skip_notifications"] = true
-
-	b, err := json.Marshal(params)
-	if err != nil {
-		return nil
-	}
+	b, err := json.Marshal(buildAbortParams{
+		AbortReason:       abortReason,
+		AbortWithSucces:   false,
+		SkipNotifications: true})
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, buildSlug), bytes.NewReader(b))
 	if err != nil {

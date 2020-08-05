@@ -70,7 +70,7 @@ inputs:
       title: Abort all if any fail
       description: |-
         Abort all started builds if any build fails
-      is_required: false
+      is_required: true
       is_sensitive: false
       value_options:
         - "yes"

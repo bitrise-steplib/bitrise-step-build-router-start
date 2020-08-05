@@ -76,7 +76,7 @@ func main() {
 	log.Infof("Waiting for builds:")
 
 	if err := app.WaitForBuilds(buildSlugs, func(build bitrise.Build) {
-		failReason := ""
+		var failReason string
 		switch build.Status {
 		case 0:
 			log.Printf("- %s %s", build.TriggeredWorkflow, build.StatusText)
@@ -93,7 +93,7 @@ func main() {
 			failReason = "cancelled"
 		}
 
-		if cfg.AbortBuildsOnFail == "yes" && build.Status != 0 && build.Status != 1 {
+		if cfg.AbortBuildsOnFail == "yes" && build.Status > 1 {
 			for _, buildSlug := range buildSlugs {
 				abortErr := app.AbortBuild(buildSlug, "Abort on Fail - Build [https://app.bitrise.io/build/"+build.Slug+"] "+failReason+"\nAuto aborted by parent build")
 				if abortErr != nil {
