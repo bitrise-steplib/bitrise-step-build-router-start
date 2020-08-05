@@ -21,6 +21,7 @@ type Config struct {
 	AccessToken            stepconf.Secret `env:"access_token,required"`
 	WaitForBuilds          string          `env:"wait_for_builds"`
 	BuildArtifactsSavePath string          `env:"build_artifacts_save_path"`
+	AbortBuildsOnFail      string          `env:"abort_on_fail"`
 	Workflows              string          `env:"workflows,required"`
 	Environments           string          `env:"environment_key_list"`
 	IsVerboseLog           bool            `env:"verbose,required"`
@@ -75,6 +76,7 @@ func main() {
 	log.Infof("Waiting for builds:")
 
 	if err := app.WaitForBuilds(buildSlugs, func(build bitrise.Build) {
+		var failReason string
 		switch build.Status {
 		case 0:
 			log.Printf("- %s %s", build.TriggeredWorkflow, build.StatusText)
@@ -82,11 +84,27 @@ func main() {
 			log.Donef("- %s successful", build.TriggeredWorkflow)
 		case 2:
 			log.Errorf("- %s failed", build.TriggeredWorkflow)
+			failReason = "failed"
 		case 3:
 			log.Warnf("- %s aborted", build.TriggeredWorkflow)
+			failReason = "aborted"
 		case 4:
 			log.Infof("- %s cancelled", build.TriggeredWorkflow)
+			failReason = "cancelled"
 		}
+
+		if cfg.AbortBuildsOnFail == "yes" && build.Status > 1 {
+			for _, buildSlug := range buildSlugs {
+				if buildSlug != build.Slug {
+					abortErr := app.AbortBuild(buildSlug, "Abort on Fail - Build [https://app.bitrise.io/build/"+build.Slug+"] "+failReason+"\nAuto aborted by parent build")
+					if abortErr != nil {
+						log.Warnf("failed to abort build, error: %s", abortErr)
+					}
+					log.Donef("Build " + buildSlug + " aborted due to associated build failure")
+				}
+			}
+		}
+
 		if build.Status != 0 {
 			if strings.TrimSpace(cfg.BuildArtifactsSavePath) != "" {
 				artifactsResponse, err := build.GetBuildArtifacts(app)

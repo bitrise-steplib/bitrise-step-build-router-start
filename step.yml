@@ -65,6 +65,16 @@ inputs:
           This is where the artifacts will be saved to so you can access them in the workflow
       is_required: false
       is_sensitive: false
+  - abort_on_fail: "no"
+    opts:
+      title: Abort all if any fail
+      description: |-
+        Abort all started builds if any build fails
+      is_required: true
+      is_sensitive: false
+      value_options:
+        - "yes"
+        - "no"
   - verbose: "no"
     opts:
       title: Enable verbose log?
