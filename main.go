@@ -63,7 +63,7 @@ func main() {
 			jsonStr := []byte(params[1])
 			var jsonObj map[string]string
 			if err := json.Unmarshal(jsonStr, &jsonObj); err != nil {
-				fmt.Errorf("failed to decode env var json, json: %s, error: %s", jsonStr, err)
+				log.Printf("Error: failed to decode env var json, json: %s, error: %s", jsonStr, err)
 			}
 			for key := range jsonObj {
 				value := jsonObj[key]
