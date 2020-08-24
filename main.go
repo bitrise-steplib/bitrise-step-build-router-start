@@ -66,9 +66,9 @@ func main() {
 				fmt.Errorf("failed to decode env var json, json: %s, error: %s", jsonStr, err)
 			}
 			keys := make([]string, 0, len(jsonObj))
-			for k := range jsonObj {
-				keys = append(keys, k)
-				log.Printf("Key: %s", jsonObj[k])
+			for key := range jsonObj {
+				keys = append(keys, key)
+				log.Printf("Key: %s Value: %s", key, jsonObj[k])
 			}
 			log.Printf("JSON: %s", jsonObj)
 		}
