@@ -61,17 +61,16 @@ func main() {
 		if len(params) > 1 {
 			wf = params[0]
 			jsonStr := []byte(params[1])
-			var jsonObj map[string]interface{}
+			var jsonObj map[string]string
 			if err := json.Unmarshal(jsonStr, &jsonObj); err != nil {
 				fmt.Errorf("failed to decode env var json, json: %s, error: %s", jsonStr, err)
 			}
-			keys := make([]string, 0, len(jsonObj))
 			for key := range jsonObj {
-				keys = append(keys, key)
-				log.Printf("Key: %s Value: %s", key, jsonObj[key])
+				value := jsonObj[key]
+				log.Printf("Key: %s Value: %s", key, value)
 				env := bitrise.Environment{
 					MappedTo: key,
-					Value:    jsonObj[key],
+					Value:    value,
 				}
 				environments = append(environments, env)
 			}
