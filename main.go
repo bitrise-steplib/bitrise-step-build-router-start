@@ -58,6 +58,7 @@ func main() {
 		wf = strings.TrimSpace(wf)
 		params := strings.Split(wf, ":")
 		if len(params) > 1 {
+			wf = params[0]
 			json := params[1]
 			log.Printf("JSON: %s", json)
 		}
