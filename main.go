@@ -63,8 +63,8 @@ func main() {
 			jsonStr := []byte(params[1])
 			var jsonObj map[string]string
 			if err := json.Unmarshal(jsonStr, &jsonObj); err != nil {
-				log.Printf("Failed to decode env var json, json: %s, error: %s", jsonStr, err)
-				log.Printf("Example Usage: workflow_name|{\"MY_ENV_VAR\": \"1\"}")
+				log.Printf("Failed to decode env var nJSON\nJSON: %s\nError: %s", jsonStr, err)
+				log.Printf("Example Usage:\n\tworkflow_name|{\"MY_ENV_VAR\": \"1\"}")
 			}
 			for key := range jsonObj {
 				value := jsonObj[key]
