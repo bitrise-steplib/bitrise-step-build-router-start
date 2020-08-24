@@ -56,7 +56,7 @@ func main() {
 	environments := createEnvs(cfg.Environments)
 	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
 		wf = strings.TrimSpace(wf)
-		params := strings.Split(wf, ":")
+		params := strings.Split(wf, "|")
 		if len(params) > 1 {
 			wf = params[0]
 			json := params[1]
