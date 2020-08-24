@@ -58,7 +58,7 @@ func main() {
 	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
 		wf = strings.TrimSpace(wf)
 		params := strings.Split(wf, "|")
-		if len(params) > 1 {
+		if len(params) == 2 {
 			wf = params[0]
 			jsonStr := []byte(params[1])
 			var jsonObj map[string]string
@@ -74,7 +74,6 @@ func main() {
 				}
 				environments = append(environments, env)
 			}
-			log.Printf("JSON: %s", jsonObj)
 		}
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
