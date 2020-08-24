@@ -31,15 +31,17 @@ inputs:
   - workflows:
     opts:
       title: Workflows
-      summary:  |
-          The workflow(s) to start. One workflow per line.   
-          To pass Env Vars with different values to the same workflow use the following syntax:    
-          `my_workflow|{"MY_ENV_VAR": "1"}`  
+      summary: |
+          The workflow(s) to start. One workflow per line.
+
+          To pass Env Vars with different values to the same workflow use the following syntax:
+          `my_workflow|{"MY_ENV_VAR": "1"}`
           `my_workflow|{"MY_ENV_VAR": "2"}`
-      description:   |
-          The workflow(s) to start. One workflow per line.   
-          To pass Env Vars with different values to the same workflow use the following syntax:    
-          `my_workflow|{"MY_ENV_VAR": "1"}`  
+      description: |
+          The workflow(s) to start. One workflow per line.
+          
+          To pass Env Vars with different values to the same workflow use the following syntax:
+          `my_workflow|{"MY_ENV_VAR": "1"}`
           `my_workflow|{"MY_ENV_VAR": "2"}`
       is_required: true
   - environment_key_list:
