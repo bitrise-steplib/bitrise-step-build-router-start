@@ -68,7 +68,12 @@ func main() {
 			keys := make([]string, 0, len(jsonObj))
 			for key := range jsonObj {
 				keys = append(keys, key)
-				log.Printf("Key: %s Value: %s", key, jsonObj[k])
+				log.Printf("Key: %s Value: %s", key, jsonObj[key])
+				env := bitrise.Environment{
+					MappedTo: key,
+					Value:    jsonObj[key],
+				}
+				environments = append(environments, env)
 			}
 			log.Printf("JSON: %s", jsonObj)
 		}
