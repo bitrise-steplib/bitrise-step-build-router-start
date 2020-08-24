@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -59,8 +60,12 @@ func main() {
 		params := strings.Split(wf, "|")
 		if len(params) > 1 {
 			wf = params[0]
-			json := params[1]
-			log.Printf("JSON: %s", json)
+			jsonStr := []byte(params[1])
+			var jsonObj map[string]interface{}
+			if err := json.Unmarshal(jsonStr, &jsonObj); err != nil {
+				fmt.Errorf("failed to decode env var json, json: %s, error: %s", jsonStr, err)
+			}
+			log.Printf("JSON: %s", jsonObj)
 		}
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
