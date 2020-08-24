@@ -65,6 +65,11 @@ func main() {
 			if err := json.Unmarshal(jsonStr, &jsonObj); err != nil {
 				fmt.Errorf("failed to decode env var json, json: %s, error: %s", jsonStr, err)
 			}
+			keys := make([]int, 0, len(jsonObj))
+			for k := range jsonObj {
+				keys = append(keys, k)
+				log.Printf("Key: %s", jsonObj[k])
+			}
 			log.Printf("JSON: %s", jsonObj)
 		}
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
