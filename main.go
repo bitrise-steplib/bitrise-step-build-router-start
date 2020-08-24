@@ -67,7 +67,7 @@ func main() {
 			}
 			for key := range jsonObj {
 				value := jsonObj[key]
-				log.Printf("Key: %s Value: %s", key, value)
+				log.Printf("Passing Env Var: %s Value: %s", key, value)
 				env := bitrise.Environment{
 					MappedTo: key,
 					Value:    value,
