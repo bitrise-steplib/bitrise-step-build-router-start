@@ -56,6 +56,11 @@ func main() {
 	environments := createEnvs(cfg.Environments)
 	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
 		wf = strings.TrimSpace(wf)
+		params := strings.Split(wf, ":")
+		if len(params) > 1 {
+			json := params[1]
+			log.Printf("JSON: %s", json)
+		}
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
