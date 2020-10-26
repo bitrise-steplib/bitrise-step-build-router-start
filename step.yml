@@ -75,14 +75,41 @@ description: -|
     - "false"
     - "true"
   wait_for_builds: "false"
-- opts:
-    description: You can enable the verbose log for easier debugging.
-    is_required: true
-    title: Enable verbose log?
-    value_options:
-    - "yes"
-    - "no"
-  verbose: "no"
+    opts:
+      title: Wait for builds
+      summary: Should the step wait for the builds to be finished?
+      description: Should the step wait for the builds to be finished?
+      is_required: false
+      value_options:
+        - "false"
+        - "true"
+  - build_artifacts_save_path:
+    opts:
+      title: Path where the build artifacts will be saved
+      summary: This is where the artifacts will be saved to if the **Wait for builds** input is set to `true`.
+      description: |
+          The build artifacts will be saved to the this path. You can access them later in the Workflow at this path.
+      is_required: false
+      is_sensitive: false
+  - abort_on_fail: "no"
+    opts:
+      title: Abort builds if any of them fail
+      description: |-
+        Abort all started builds if any build fails. 
+      is_required: true
+      is_sensitive: false
+      value_options:
+        - "yes"
+        - "no"
+  - verbose: "no"
+    opts:
+      title: Enable verbose log?
+      description: |-
+        You can enable the verbose log for easier debugging.
+      is_required: true
+      value_options:
+        - "yes"
+        - "no"
 outputs:
 - ROUTER_STARTED_BUILD_SLUGS: null
   opts:
