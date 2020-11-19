@@ -11,7 +11,7 @@ description: |-
   
   Note that all builds you trigger using this Step will have the same build number! 
   
-     1. Set up at least two Workflows in the Workflow Editor: one will contain the Step, the other will be triggered by the Step. 
+    1. Set up at least two Workflows in the Workflow Editor: one will contain the Step, the other will be triggered by the Step. 
        You can set up as many Workflows as you wish: your number of concurrencies limit the number of Workflows you can run simultaneously.
     2. Add the **Bitrise Start Build** Step to the part of the Workflow where you want to trigger another build. 
     3. Add the Secret Env Var storing your Personal Access Token to the **Bitrise Access Token** input of the **Bitrise Start Build** Step: click the **Select secret variable** button, and choose the key you created.
@@ -25,21 +25,21 @@ description: |-
        - In **The path of the build artifacts** input, set where you'd like to save the artifacts. 
        - Set the **Abort all builds if one fails** input to either `yes` or `no`. 
   
- ### Troubleshooting 
+  ### Troubleshooting 
  
- - Make sure you have both the **Bitrise Start Build** and the **Bitrise Wait for Build** Steps in the right place in your initial Workflow. 
- - Always check all your builds: if your concurrencies are taken up by other builds, this Step cannot start new ones. 
- - Your Personal Access Token can expire! Make sure it's still valid - without it, you can't start new builds with this Step. 
+  - Make sure you have both the **Bitrise Start Build** and the **Bitrise Wait for Build** Steps in the right place in your initial Workflow. 
+  - Always check all your builds: if your concurrencies are taken up by other builds, this Step cannot start new ones. 
+  - Your Personal Access Token can expire! Make sure it's still valid - without it, you can't start new builds with this Step. 
  
- ### Useful links 
+  ### Useful links 
  
- - [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-workflows/)
+  - [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-workflows/)
  
- ### Related Steps 
+  ### Related Steps 
  
- - [Bitrise Wait for Build](https://www.bitrise.io/integrations/steps/build-router-start)
- - [Bitrise Run](https://www.bitrise.io/integrations/steps/bitrise-run)
- - [Build Status Change](https://www.bitrise.io/integrations/steps/build-status-change)
+  - [Bitrise Wait for Build](https://www.bitrise.io/integrations/steps/build-router-start)
+  - [Bitrise Run](https://www.bitrise.io/integrations/steps/bitrise-run)
+  - [Build Status Change](https://www.bitrise.io/integrations/steps/build-status-change)
 
 website: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 source_code_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start
