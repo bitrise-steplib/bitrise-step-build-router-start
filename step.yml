@@ -1,5 +1,5 @@
-title: "Bitrise Start Build"
-summary:
+title: Bitrise Start Build
+summary: Starts the given workflows in the same app
 description: |-
   The Step starts a new build of the same app. In combination with the **Bitrise Wait for Build** Step you can use this Step to start multiple builds that run in parallel at the same time. You can put this Step in a Workflow that is triggered by a code push or pull request and use this Step to trigger multiple other builds at the same time. 
   
