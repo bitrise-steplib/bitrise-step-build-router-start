@@ -59,7 +59,7 @@ inputs:
         - "true"
   - build_artifacts_save_path:
     opts:
-      title: Path to save the Artifacts in (leave empty to not save artifacts)
+      title: Path to save the Artifacts in eg. /tmp/ or ./tmp but path must exist (leave empty to not save artifacts)
       summary: This is where the artifacts will be saved to if wait_for_builds == true
       description: |
           This is where the artifacts will be saved to so you can access them in the workflow
