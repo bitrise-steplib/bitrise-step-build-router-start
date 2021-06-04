@@ -23,13 +23,15 @@ description: |-
        The build slugs you need are stored by the **Bitrise Start Build** Step in the `$ROUTER_STARTED_BUILD_SLUGS` Env Var. As long as the builds defined by the slugs are running, the Step will hold the build it is running in. The build will fail if any of the builds included in the Step fail.
     9. Optionally, you can save the build artifacts from the builds and configure the Step to abort all builds if any of the builds fail:
        - In **The path of the build artifacts** input, set where you'd like to save the artifacts. 
+         The value of the input must be an actual, existing path, ending with `/`. The `BITRISE_DEPLOY_DIR` Environment Variable is NOT a valid value.
        - Set the **Abort all builds if one fails** input to either `yes` or `no`. 
+       Please note that the build artifacts of child Workflows - Workflows triggered by this Step - will be only available if the child Workflow contains a **Deploy to Bitrise.io** Step.
   
  ### Troubleshooting 
  
  - Make sure you have both the **Bitrise Start Build** and the **Bitrise Wait for Build** Steps in the right place in your initial Workflow. 
  - Always check all your builds: if your concurrencies are taken up by other builds, this Step cannot start new ones. 
- - Your Personal Access Token can expire! Make sure it's still valid - without it, you can't start new builds with this Step. 
+ - Your Personal Access Token can expire! Make sure it's still valid - without it, you can't start new builds with this Step.  
  
  ### Useful links 
  
@@ -86,10 +88,15 @@ description: |-
         - "true"
   - build_artifacts_save_path:
     opts:
-      title: Path where the build artifacts will be saved
-      summary: This is where the artifacts will be saved to if the **Wait for builds** input is set to `true`.
+      title: The path of the build artifacts
+      summary: The path that the build artifacts will be saved to if the **Wait for builds** input is set to `true`.
       description: |
-          The build artifacts will be saved to the this path. You can access them later in the Workflow at this path.
+          The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`. 
+      
+          Please note that the path must be an actual, existing path, ending with `/`. The `BITRISE_DEPLOY_DIR` Environment Variable is NOT a valid value. 
+      
+          Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows. 
+          The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!
       is_required: false
       is_sensitive: false
   - abort_on_fail: "no"
