@@ -107,6 +107,7 @@ func main() {
 
 		if build.Status != 0 {
 			if strings.TrimSpace(cfg.BuildArtifactsSavePath) != "" {
+				fullBuildArtifactsSavePath := strings.TrimSuffix(cfg.BuildArtifactsSavePath, "/") + "/"
 				artifactsResponse, err := build.GetBuildArtifacts(app)
 				if err != nil {
 					log.Warnf("failed to get build artifacts, error: %s", err)
@@ -117,11 +118,11 @@ func main() {
 						log.Warnf("failed to get build artifact, error: %s", err)
 					}
 
-					downloadErr := artifactObj.Artifact.DownloadArtifact(strings.TrimSpace(cfg.BuildArtifactsSavePath) + artifactObj.Artifact.Title)
+					downloadErr := artifactObj.Artifact.DownloadArtifact(strings.TrimSpace(fullBuildArtifactsSavePath) + artifactObj.Artifact.Title)
 					if downloadErr != nil {
 						log.Warnf("failed to download artifact, error: %s", downloadErr)
 					}
-					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + strings.TrimSpace(cfg.BuildArtifactsSavePath))
+					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + strings.TrimSpace(fullBuildArtifactsSavePath))
 				}
 			}
 		}
