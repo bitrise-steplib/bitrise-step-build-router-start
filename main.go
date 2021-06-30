@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"filepath"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
