@@ -109,7 +109,6 @@ func main() {
 		if build.Status != 0 {
 			buildArtifactSaveDir := strings.TrimSpace(cfg.BuildArtifactsSavePath)
 			if buildArtifactSaveDir != "" {
-				fullBuildArtifactsSavePath := filepath.Join(buildArtifactSaveDir, artifactObj.Artifact.Title)
 				artifactsResponse, err := build.GetBuildArtifacts(app)
 				if err != nil {
 					log.Warnf("failed to get build artifacts, error: %s", err)
@@ -119,7 +118,7 @@ func main() {
 					if err != nil {
 						log.Warnf("failed to get build artifact, error: %s", err)
 					}
-
+					fullBuildArtifactsSavePath := filepath.Join(buildArtifactSaveDir, artifactObj.Artifact.Title)
 					downloadErr := artifactObj.Artifact.DownloadArtifact(fullBuildArtifactsSavePath)
 					if downloadErr != nil {
 						log.Warnf("failed to download artifact, error: %s", downloadErr)
