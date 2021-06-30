@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"filepath"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
@@ -106,8 +107,9 @@ func main() {
 		}
 
 		if build.Status != 0 {
-			if strings.TrimSpace(cfg.BuildArtifactsSavePath) != "" {
-				fullBuildArtifactsSavePath := strings.TrimSuffix(cfg.BuildArtifactsSavePath, "/") + "/"
+			buildArtifactSaveDir := strings.TrimSpace(cfg.BuildArtifactsSavePath)
+			if buildArtifactSaveDir != "" {
+				fullBuildArtifactsSavePath := filepath.Join(buildArtifactSaveDir, artifactObj.Artifact.Title)
 				artifactsResponse, err := build.GetBuildArtifacts(app)
 				if err != nil {
 					log.Warnf("failed to get build artifacts, error: %s", err)
@@ -118,11 +120,11 @@ func main() {
 						log.Warnf("failed to get build artifact, error: %s", err)
 					}
 
-					downloadErr := artifactObj.Artifact.DownloadArtifact(strings.TrimSpace(fullBuildArtifactsSavePath) + artifactObj.Artifact.Title)
+					downloadErr := artifactObj.Artifact.DownloadArtifact(fullBuildArtifactsSavePath)
 					if downloadErr != nil {
 						log.Warnf("failed to download artifact, error: %s", downloadErr)
 					}
-					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + strings.TrimSpace(fullBuildArtifactsSavePath))
+					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + fullBuildArtifactsSavePath)
 				}
 			}
 		}
