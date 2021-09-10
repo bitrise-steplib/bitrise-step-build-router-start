@@ -35,14 +35,14 @@ description: |-
 
   ### Useful links 
 
-  - [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-workflows/)
+  - [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-Workflows/)
 
   ### Related Steps 
 
   - [Bitrise Wait for Build](https://www.bitrise.io/integrations/steps/build-router-start)
   - [Bitrise Run](https://www.bitrise.io/integrations/steps/bitrise-run)
   - [Build Status Change](https://www.bitrise.io/integrations/steps/build-status-change)
- 
+
 website: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 source_code_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start
 support_url: https://github.com/bitrise-steplib/bitrise-step-build-router-start/issues
@@ -58,44 +58,43 @@ toolkit:
     package_name: github.com/bitrise-steplib/bitrise-step-build-router-start
 
 inputs:
-- access_token: null
-  opts:
-    description: "Your access token\n\nTo acquire a `Personal Access Token` for your
-      user, sign in with that user on [bitrise.io](https://bitrise.io),  \ngo to your
-      `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security)
-      on the left side.\n"
-    is_expand: true
-    is_required: true
-    is_sensitive: true
-    summary: Your access token
-    title: Bitrise Access Token
-- opts:
-    description: The Workflow(s) to start. One Workflow per line.
-    is_required: true
-    summary: The Workflow(s) to start. One Workflow per line.
-    title: Workflows
-  workflows: null
-- environment_key_list: null
-  opts:
-    description: "The keys of the Env Vars which will be shared with the triggered Workflows\n\n\n**FORMAT**
-      Seperate the keys with new line, for example: \n`ENV_1\nENV_2\nENV_3`"
-    is_expand: false
-    is_required: false
-    summary: The keys of the Env Vars which will be shared with the triggered Workflows.
-    title: Environments to share
-- opts:
-    description: Should the Step wait for the builds to be finished?
-    is_required: false
-    summary: Should the Step wait for the builds to be finished?
-    title: Wait for builds
-    value_options:
-    - "false"
-    - "true"
-  wait_for_builds: "false"
+  - access_token:
+    opts:
+      title: Bitrise Access Token
+      summary: Your access token
+      description: |
+          Your access token
+          
+          To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io),  
+          go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
+      is_required: true
+      is_expand: true
+      is_sensitive: true
+  - workflows:
+    opts:
+      title: Workflows
+      summary: The Workflow(s) to start. One Workflow per line.
+      description: The Workflow(s) to start. One Workflow per line.
+      is_required: true
+  - environment_key_list:
+    opts:
+      title: Environments to share
+      summary: The keys of the envs which will be shared with the triggered Workflows.
+      description: |-
+        The keys of the envs which will be shared with the triggered Workflows
+
+        
+        **FORMAT** Seperate the keys with new line. E.g: 
+        `ENV_1
+        ENV_2
+        ENV_3`
+      is_expand: false
+      is_required: false
+  - wait_for_builds: "false"
     opts:
       title: Wait for builds
-      summary: Should the step wait for the builds to be finished?
-      description: Should the step wait for the builds to be finished?
+      summary: Should the Step wait for the builds to be finished?
+      description: Should the Step wait for the builds to be finished?
       is_required: false
       value_options:
         - "false"
@@ -115,9 +114,9 @@ inputs:
       is_sensitive: false
   - abort_on_fail: "no"
     opts:
-      title: Abort builds if any of them fail
+      title: Abort all builds if any of them
       description: |-
-        Abort all started builds if any build fails. 
+        Abort all started builds if any build fails
       is_required: true
       is_sensitive: false
       value_options:
@@ -133,8 +132,8 @@ inputs:
         - "yes"
         - "no"
 outputs:
-- ROUTER_STARTED_BUILD_SLUGS: null
-  opts:
-    description: List of started build slugs: put each separate build slug on a new line.
-    summary: List of started build slugs.
-    title: Started Build Slugs
+  - ROUTER_STARTED_BUILD_SLUGS:
+    opts:
+      title: "Started Build Slugs"
+      summary: "Newline separated list of started build slugs."
+      description: "Newline separated list of started build slugs."
