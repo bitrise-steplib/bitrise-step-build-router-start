@@ -1,62 +1,262 @@
-format_version: 5
+---
+format_version: '9'
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
-app:
-  envs:
-  - BITRISE_STEP_ID: build-router-start
-  - BITRISE_STEP_VERSION: "0.9.0"
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/bitrise-step-build-router-start.git
-  - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-  - TEST_WORKFLOWS: $TEST_WORKFLOWS
-  - ACCESS_TOKEN: $ACCESS_TOKEN
-
+project_type: other
+trigger_map:
+- pull_request_source_branch: "*"
+  workflow: primary
+- tag: "*.*.*"
+  workflow: release
 workflows:
-  test:
-    envs:
-    - ENV_1: "1"
-    - ENV_2: "2"
-    - ENV_3: "3"
-    - ENV_4: "4"
-    before_run:
-    - audit-this-step
+  primary:
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-        run_if: |-
-          {{enveq "ERRCHECK_DISABLE" ""}}
-    - go-test:
     - path::./:
         inputs:
-        - workflows: $TEST_WORKFLOWS
-        - access_token: $ACCESS_TOKEN
-        - wait_for_builds: "true"
-        - environment_key_list: "ENV_1\nENV_2\n$ENV_3\n$ENV_4\n"
-        - verbose: "yes"
-
-  test_shared_envs:
+        - workflows: Ubuntu
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: UbuntuLTS
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: XamarinPrevious
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: XamarinEdge
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: XcodeEdge
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: XcodeStable
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+    - path::./:
+        inputs:
+        - workflows: XamarinStable
+        - wait_for_builds: 'true'
+        - verbose: 'yes'
+        - access_token: "$ACCESS_TOKEN"
+  release:
     steps:
-    - script@1.1.5:
+    - trigger-bitrise-workflow@0.x.x:
+        inputs:
+        - api_token: "$CONTROL_CENTER_TRIGGER_KEY"
+        - workflow_id: step-release
+        - exported_environment_variable_names: STEP_ID_IN_STEPLIB|GIT_REPOSITORY_URL
+        - app_slug: "$CONTROL_CENTER_APP_SLUG"
+  test1:
+    steps:
+    - activate-ssh-key@3.x.x:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        inputs:
+        - content: bitrise run test_shared_envs
+  test2:
+    steps:
+    - activate-ssh-key@3.x.x:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+        asset_urls:
+          icon.svg: https://bitrise-steplib-collection.s3.amazonaws.com/steps/activate-ssh-key/assets/icon.svg
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        inputs:
+        - content: bitrise run test_shared_envs
+  test3:
+    steps:
+    - activate-ssh-key@3.x.x:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        inputs:
+        - content: bitrise run test_shared_envs
+  Ubuntu:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
         inputs:
         - content: |-
             #!/usr/bin/env bash
             # fail if any commands fails
             set -e
-            
-            echo "ENV_1 = $ENV_1 ENV_2 = $ENV_2 ENV_3 = $ENV_3 ENV_4 = $ENV_4"
-            if [[ "$ENV_1" != "1" ]] || [[ "$ENV_2" != "2" ]] || [[ "$ENV_3" != "3" ]] || [[ "$ENV_4" != "4" ]] ; then
-              exit 1;
-            else
-              echo "got all of the exported environments"
-            fi
+            # debug log
+            set -x
 
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
-  audit-this-step:
+            bitrise run test
+  UbuntuLTS:
     steps:
-    - script:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            set -ex
-            stepman audit --step-yml ./step.yml
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            export ERRCHECK_DISABLE="set"
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-20.04
+        machine_type_id: standard
+  XamarinEdge:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: osx-xcode-edge
+  XamarinPrevious:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: osx-vs4mac-previous-stable
+  XamarinStable:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: osx-vs4mac-stable
+  XcodeEdge:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: osx-xcode-edge
+  XcodeStable:
+    steps:
+    - activate-ssh-key@4:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - change-workdir@1.x.x:
+        inputs:
+        - path: "$GOPATH/src/github.com/bitrise-steplib/bitrise-step-build-router-start"
+    - git-clone@4.x.x: {}
+    - script@1.x.x:
+        title: Do anything with Script step
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            # fail if any commands fails
+            set -e
+            # debug log
+            set -x
+
+            bitrise run test
+    meta:
+      bitrise.io:
+        stack: osx-xcode-12.5.x
+        machine_type_id: standard
+app:
+  envs:
+  - opts:
+      is_expand: false
+    TEST_WORKFLOWS: |-
+      test1
+      test2
+      test3
+meta:
+  bitrise.io:
+    machine_type_id: standard
