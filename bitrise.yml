@@ -10,6 +10,9 @@ trigger_map:
 workflows:
   primary:
     steps:
+    - activate-ssh-key@3.x.x:
+        run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
+    - git-clone: {}
     - path::./:
         inputs:
         - workflows: Ubuntu
