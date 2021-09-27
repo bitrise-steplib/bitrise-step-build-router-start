@@ -40,8 +40,8 @@ type startRequest struct {
 
 // StartResponse ...
 type StartResponse struct {
-	Status            string `json:"message"`
-	Message           string `json:"status"`
+	Status            string `json:"status"`
+	Message           string `json:"message"`
 	BuildSlug         string `json:"build_slug"`
 	BuildNumber       int    `json:"build_number"`
 	BuildURL          string `json:"build_url"`
@@ -237,8 +237,6 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 	if err != nil {
 		return StartResponse{}, nil
 	}
-
-	log.Infof("Start build response: %v", string(respBody))
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return StartResponse{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
