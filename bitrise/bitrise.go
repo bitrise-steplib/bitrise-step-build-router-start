@@ -238,7 +238,7 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, nil
 	}
 
-	log.Infof("Start build response: %v", respBody)
+	log.Infof("Start build response: %v", string(respBody))
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return StartResponse{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
