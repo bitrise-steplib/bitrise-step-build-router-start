@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
@@ -60,6 +60,9 @@ func main() {
 		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
+		}
+		if startedBuild.BuildSlug == "" {
+			failf("Build was not started. This could mean that manual build approval is enabled for this project and it's blocking this step from starting builds.")
 		}
 		buildSlugs = append(buildSlugs, startedBuild.BuildSlug)
 		log.Printf("- %s started (https://app.bitrise.io/build/%s)", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug)

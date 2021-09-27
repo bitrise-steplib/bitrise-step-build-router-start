@@ -42,7 +42,7 @@ workflows:
             #!/usr/bin/env bash
             # fail if any commands fails
             set -e
-            
+
             echo "ENV_1 = $ENV_1 ENV_2 = $ENV_2 ENV_3 = $ENV_3 ENV_4 = $ENV_4"
             if [[ "$ENV_1" != "1" ]] || [[ "$ENV_2" != "2" ]] || [[ "$ENV_3" != "3" ]] || [[ "$ENV_4" != "4" ]] ; then
               exit 1;

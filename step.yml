@@ -4,7 +4,9 @@ description: |-
   The Step starts a new build of the same app. In combination with the **Bitrise Wait for Build** Step you can use this Step to start multiple builds that run in parallel at the same time. You can put this Step in a Workflow that is triggered by a code push or pull request and use this Step to trigger multiple other builds at the same time. 
   
   To do that, you need multiple concurrencies - at least two! You also need a Personal Access Token to use the Step: [check out our guide](https://devcenter.bitrise.io/getting-started/account-security/#generating-personal-access-tokens-manually) on how to generate the token.
-  
+
+  If manual build approval is enabled for the project, this step won't be able to start new builds automatically.
+
   ### Configuring the Step 
   
   Before you run a build with this Step, make sure you have your Personal Access Token stored in a [Secret Environment Variable](https://devcenter.bitrise.io/builds/env-vars-secret-env-vars/#adding-a-secret-env-var).

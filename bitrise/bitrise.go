@@ -40,8 +40,8 @@ type startRequest struct {
 
 // StartResponse ...
 type StartResponse struct {
-	Status            string `json:"message"`
-	Message           string `json:"status"`
+	Status            string `json:"status"`
+	Message           string `json:"message"`
 	BuildSlug         string `json:"build_slug"`
 	BuildNumber       int    `json:"build_number"`
 	BuildURL          string `json:"build_url"`
