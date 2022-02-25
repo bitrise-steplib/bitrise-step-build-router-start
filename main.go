@@ -120,6 +120,11 @@ func main() {
 					artifactObj, err := build.GetBuildArtifact(app, artifactSlug.ArtifactSlug)
 					if err != nil {
 						log.Warnf("failed to get build artifact: %s", err)
+						continue
+					}
+					if err = os.MkdirAll(buildArtifactSaveDir, 0777); err != nil {
+						log.Warnf("failed to ensure artifact path %s exists: %s", buildArtifactSaveDir, err)
+						continue
 					}
 					fullBuildArtifactsSavePath := filepath.Join(buildArtifactSaveDir, artifactObj.Artifact.Title)
 					downloadErr := artifactObj.Artifact.DownloadArtifact(fullBuildArtifactsSavePath)
