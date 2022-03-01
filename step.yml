@@ -25,7 +25,7 @@ description: |-
        The build slugs you need are stored by the **Bitrise Start Build** Step in the `$ROUTER_STARTED_BUILD_SLUGS` Env Var. As long as the builds defined by the slugs are running, the Step will hold the build it is running in. The build will fail if any of the builds included in the Step fail.
     9. Optionally, you can save the build artifacts from the builds and configure the Step to abort all builds if any of the builds fail:
        - In **The path of the build artifacts** input, set where you'd like to save the artifacts. 
-         The value of the input must be an actual, existing path, ending with `/`. The `BITRISE_DEPLOY_DIR` Environment Variable is NOT a valid value.
+         The value of the input must be an actual, existing path, ending with `/`.
        - Set the **Abort all builds if one fails** input to either `yes` or `no`. 
        Please note that the build artifacts of child Workflows - Workflows triggered by this Step - will be only available if the child Workflow contains a **Deploy to Bitrise.io** Step.
   
@@ -108,7 +108,7 @@ inputs:
       summary: The path that the build artifacts will be saved to if the **Wait for builds** input is set to `true`.
       description: |
           The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`. 
-      
+
           Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows. 
           The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!
       is_required: false
