@@ -108,9 +108,7 @@ inputs:
       summary: The path that the build artifacts will be saved to if the **Wait for builds** input is set to `true`.
       description: |
           The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`. 
-      
-          Please note that the path must be an actual, existing path, ending with `/`.  
-      
+
           Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows. 
           The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!
       is_required: false

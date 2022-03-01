@@ -114,24 +114,30 @@ func main() {
 			if buildArtifactSaveDir != "" {
 				artifactsResponse, err := build.GetBuildArtifacts(app)
 				if err != nil {
-					log.Warnf("failed to get build artifacts, error: %s", err)
+					log.Warnf("failed to get build artifacts: %s", err)
 				}
 				for _, artifactSlug := range artifactsResponse.ArtifactSlugs {
 					artifactObj, err := build.GetBuildArtifact(app, artifactSlug.ArtifactSlug)
 					if err != nil {
-						log.Warnf("failed to get build artifact, error: %s", err)
+						log.Warnf("failed to get build artifact: %s", err)
+						continue
+					}
+					if err = os.MkdirAll(buildArtifactSaveDir, 0777); err != nil {
+						log.Warnf("failed to ensure artifact path %s exists: %s", buildArtifactSaveDir, err)
+						continue
 					}
 					fullBuildArtifactsSavePath := filepath.Join(buildArtifactSaveDir, artifactObj.Artifact.Title)
 					downloadErr := artifactObj.Artifact.DownloadArtifact(fullBuildArtifactsSavePath)
 					if downloadErr != nil {
-						log.Warnf("failed to download artifact, error: %s", downloadErr)
+						log.Warnf("failed to download %s artifact: %s", artifactObj.Artifact.Title, downloadErr)
+					} else {
+						log.Donef("Downloaded %s to %s", artifactObj.Artifact.Title, fullBuildArtifactsSavePath)
 					}
-					log.Donef("Downloaded: " + artifactObj.Artifact.Title + " to path " + fullBuildArtifactsSavePath)
 				}
 			}
 		}
 	}); err != nil {
-		failf("An error occoured: %s", err)
+		failf("An error occurred: %s", err)
 	}
 }
 
