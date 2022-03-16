@@ -20,7 +20,7 @@ description: |-
     3. Add the Secret Env Var storing your Personal Access Token to the **Bitrise Access Token** input of the **Bitrise Start Build** Step: click the **Select secret variable** button, and choose the key you created.
     4. Find the **Workflows** input of the **Bitrise Start Build** Step, and add the Workflow(s) you want to run. 
     5. In the **Environments to share** input, add Environment Variables (Env Vars) that you want to share between the builds triggered by the Step.
-    6. (Optional) You can set the **Wait for builds** input to `true`, if you would like to pause the current build until the triggered build(s) are finished. 
+    6. (Optional) You can set the **Wait for builds** input to `true` if you would like to pause the current build until the triggered build(s) are finished. 
     7. (Optional) You can add any Step you would like to run in parallel while the triggered Workflow(s) are running in the parent Workflow.
        Make sure to add the **Bitrise Wait for Build** Step to the end of Workflow.
     8. Add the Secret Env Var storing your Personal Access Token to the **Bitrise Access Token** input of the **Bitrise Wait for Build** Step: click the **Select secret variable** button, and choose the key you created.
