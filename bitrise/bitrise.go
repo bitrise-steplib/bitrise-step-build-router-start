@@ -366,7 +366,8 @@ func (app App) AbortBuild(buildSlug string, abortReason string) error {
 	b, err := json.Marshal(buildAbortParams{
 		AbortReason:       abortReason,
 		AbortWithSucces:   false,
-		SkipNotifications: true})
+		SkipNotifications: true,
+	})
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, buildSlug), bytes.NewReader(b))
 	if err != nil {
@@ -425,7 +426,7 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 				continue
 			}
 
-			if build.Status != 1 {
+			if build.Status != 1 && build.Status != 4 {
 				failed = true
 			}
 
