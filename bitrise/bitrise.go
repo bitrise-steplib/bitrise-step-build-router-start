@@ -26,28 +26,28 @@ type Build struct {
 }
 
 // IsRunning ...
-func (b Build) IsRunning() bool {
-	return b.Status == 0
+func (build Build) IsRunning() bool {
+	return build.Status == 0
 }
 
 // IsSuccessful ...
-func (b Build) IsSuccessful() bool {
-	return b.Status == 1
+func (build Build) IsSuccessful() bool {
+	return build.Status == 1
 }
 
 // IsFailed ...
-func (b Build) IsFailed() bool {
-	return b.Status == 2
+func (build Build) IsFailed() bool {
+	return build.Status == 2
 }
 
 // IsAborted ...
-func (b Build) IsAborted() bool {
-	return b.Status == 3
+func (build Build) IsAborted() bool {
+	return build.Status == 3
 }
 
 // IsAbortedWithSuccess ...
-func (b Build) IsAbortedWithSuccess() bool {
-	return b.Status == 4
+func (build Build) IsAbortedWithSuccess() bool {
+	return build.Status == 4
 }
 
 type buildResponse struct {
