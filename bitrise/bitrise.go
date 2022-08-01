@@ -25,6 +25,31 @@ type Build struct {
 	OriginalBuildParams json.RawMessage `json:"original_build_params"`
 }
 
+// IsRunning ...
+func (b Build) IsRunning() bool {
+	return b.Status == 0
+}
+
+// IsSuccessful ...
+func (b Build) IsSuccessful() bool {
+	return b.Status == 1
+}
+
+// IsFailed ...
+func (b Build) IsFailed() bool {
+	return b.Status == 2
+}
+
+// IsAborted ...
+func (b Build) IsAborted() bool {
+	return b.Status == 3
+}
+
+// IsAbortedWithSuccess ...
+func (b Build) IsAbortedWithSuccess() bool {
+	return b.Status == 4
+}
+
 type buildResponse struct {
 	Data Build `json:"data"`
 }
@@ -421,12 +446,12 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 				status[buildSlug] = build.StatusText
 			}
 
-			if build.Status == 0 {
+			if build.IsRunning() {
 				running++
 				continue
 			}
 
-			if build.Status != 1 && build.Status != 4 {
+			if build.IsFailed() || build.IsAborted() {
 				failed = true
 			}
 
