@@ -25,6 +25,31 @@ type Build struct {
 	OriginalBuildParams json.RawMessage `json:"original_build_params"`
 }
 
+// IsRunning ...
+func (build Build) IsRunning() bool {
+	return build.Status == 0
+}
+
+// IsSuccessful ...
+func (build Build) IsSuccessful() bool {
+	return build.Status == 1
+}
+
+// IsFailed ...
+func (build Build) IsFailed() bool {
+	return build.Status == 2
+}
+
+// IsAborted ...
+func (build Build) IsAborted() bool {
+	return build.Status == 3
+}
+
+// IsAbortedWithSuccess ...
+func (build Build) IsAbortedWithSuccess() bool {
+	return build.Status == 4
+}
+
 type buildResponse struct {
 	Data Build `json:"data"`
 }
@@ -366,7 +391,8 @@ func (app App) AbortBuild(buildSlug string, abortReason string) error {
 	b, err := json.Marshal(buildAbortParams{
 		AbortReason:       abortReason,
 		AbortWithSucces:   false,
-		SkipNotifications: true})
+		SkipNotifications: true,
+	})
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, buildSlug), bytes.NewReader(b))
 	if err != nil {
@@ -420,12 +446,12 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 				status[buildSlug] = build.StatusText
 			}
 
-			if build.Status == 0 {
+			if build.IsRunning() {
 				running++
 				continue
 			}
 
-			if build.Status != 1 {
+			if build.IsFailed() || build.IsAborted() {
 				failed = true
 			}
 
