@@ -88,13 +88,16 @@ inputs:
       title: Environments to share
       summary: The keys of the envs which will be shared with the triggered Workflows.
       description: |-
-        The keys of the envs which will be shared with the triggered Workflows
+        The keys of the envs which will be shared with the triggered Workflows.
 
         
-        **FORMAT** Seperate the keys with new line. E.g: 
-        `ENV_1
-        ENV_2
-        ENV_3`
+        **FORMAT** Seperate the keys with new line. E.g:
+        
+        `ENV_1`
+
+        `ENV_2`
+
+        `ENV_3`
       is_expand: false
       is_required: false
   - wait_for_builds: "false"
