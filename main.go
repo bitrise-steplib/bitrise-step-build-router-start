@@ -23,9 +23,14 @@ type Config struct {
 	WaitForBuilds          string          `env:"wait_for_builds"`
 	BuildArtifactsSavePath string          `env:"build_artifacts_save_path"`
 	AbortBuildsOnFail      string          `env:"abort_on_fail"`
-	Workflows              string          `env:"workflows,required"`
+	Workflows              []Workflow      `env:"workflows,required"`
 	Environments           string          `env:"environment_key_list"`
 	IsVerboseLog           bool            `env:"verbose,required"`
+}
+
+type Workflow struct {
+	Name         string
+	Environments string
 }
 
 func failf(s string, a ...interface{}) {
@@ -54,10 +59,11 @@ func main() {
 	log.Infof("Starting builds:")
 
 	var buildSlugs []string
-	environments := createEnvs(cfg.Environments)
-	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
-		wf = strings.TrimSpace(wf)
-		startedBuild, err := app.StartBuild(wf, build.OriginalBuildParams, cfg.BuildNumber, environments)
+	globalEnvironments := createEnvs(cfg.Environments)
+	for _, wf := range cfg.Workflows {
+		workflowEnvironments := createEnvs(wf.Environments)
+		environments := append(globalEnvironments, workflowEnvironments...)
+		startedBuild, err := app.StartBuild(wf.Name, build.OriginalBuildParams, cfg.BuildNumber, environments)
 		if err != nil {
 			failf("Failed to start build, error: %s", err)
 		}
