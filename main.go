@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 )
 
 const envBuildSlugs = "ROUTER_STARTED_BUILD_SLUGS"
+const envBuildsJSON = "ROUTER_STARTED_BUILDS"
 
 // Config ...
 type Config struct {
@@ -26,6 +28,14 @@ type Config struct {
 	Workflows              string          `env:"workflows,required"`
 	Environments           string          `env:"environment_key_list"`
 	IsVerboseLog           bool            `env:"verbose,required"`
+}
+
+// Build ...
+type Build struct {
+	BuildSlug         string `json:"build_slug"`
+	BuildNumber       int    `json:"build_number"`
+	BuildURL          string `json:"build_url"`
+	TriggeredWorkflow string `json:"triggered_workflow"`
 }
 
 func failf(s string, a ...interface{}) {
@@ -54,6 +64,7 @@ func main() {
 	log.Infof("Starting builds:")
 
 	var buildSlugs []string
+	var builds []Build
 	environments := createEnvs(cfg.Environments)
 	for _, wf := range strings.Split(strings.TrimSpace(cfg.Workflows), "\n") {
 		wf = strings.TrimSpace(wf)
@@ -65,10 +76,25 @@ func main() {
 			failf("Build was not started. This could mean that manual build approval is enabled for this project and it's blocking this step from starting builds.")
 		}
 		buildSlugs = append(buildSlugs, startedBuild.BuildSlug)
-		log.Printf("- %s started (https://app.bitrise.io/build/%s)", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug)
+		builds = append(builds, Build{
+			BuildSlug:         startedBuild.BuildSlug,
+			BuildNumber:       startedBuild.BuildNumber,
+			BuildURL:          startedBuild.BuildURL,
+			TriggeredWorkflow: startedBuild.TriggeredWorkflow,
+		})
+		log.Printf("- %s started (https://app.bitrise.io/build/%s) build number %d", startedBuild.TriggeredWorkflow, startedBuild.BuildSlug, startedBuild.BuildNumber)
 	}
 
 	if err := tools.ExportEnvironmentWithEnvman(envBuildSlugs, strings.Join(buildSlugs, "\n")); err != nil {
+		failf("Failed to export environment variable, error: %s", err)
+	}
+
+	jsonBytes, err := json.Marshal(builds)
+	if err != nil {
+		failf("Failed to marshal builds array, error: %s", err)
+		return
+	}
+	if err := tools.ExportEnvironmentWithEnvman(envBuildsJSON, string(jsonBytes)); err != nil {
 		failf("Failed to export environment variable, error: %s", err)
 	}
 
