@@ -393,34 +393,37 @@ func (app App) AbortBuild(buildSlug string, abortReason string) error {
 		AbortWithSucces:   false,
 		SkipNotifications: true,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal abort params: %w", err)
+	}
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/builds/%s/abort", app.BaseURL, app.Slug, buildSlug), bytes.NewReader(b))
 	if err != nil {
-		return nil
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Add("Authorization", "token "+app.AccessToken)
 
 	retryReq, err := retryablehttp.FromRequest(req)
 	if err != nil {
-		return fmt.Errorf("failed to create retryable request: %s", err)
+		return fmt.Errorf("failed to create retryable request: %w", err)
 	}
 
 	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
 
 	resp, err := retryClient.Do(retryReq)
 	if err != nil {
-		return nil
+		return fmt.Errorf("failed to send request: %w", err)
 	}
 
 	defer func() {
-		if cerr := resp.Body.Close(); cerr != nil && err == nil {
-			err = cerr
+		if err := resp.Body.Close(); err != nil {
+			log.Warnf("Failed to close response body: %s", err)
 		}
 	}()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil
+		return fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
