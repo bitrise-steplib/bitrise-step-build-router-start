@@ -239,6 +239,7 @@ func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNum
 		return StartResponse{}, nil
 	}
 	req.Header.Add("Authorization", "token "+app.AccessToken)
+	req.Header.Add("Content-Type", "application/json")
 
 	retryReq, err := retryablehttp.FromRequest(req)
 	if err != nil {
