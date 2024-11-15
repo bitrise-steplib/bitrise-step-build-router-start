@@ -43,7 +43,6 @@ description: |-
   - [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-workflows/)
   - [Start builds from a parent Workflow](https://devcenter.bitrise.io/en/steps-and-workflows/generic-workflow-recipes/start--parallel--builds-from-the-workflow.html##)
 
-
   ### Related Steps
 
   - [Bitrise Wait for Build](https://www.bitrise.io/integrations/steps/build-router-wait)
@@ -89,7 +88,6 @@ inputs:
     summary: The keys of the envs which will be shared with the triggered Workflows.
     description: |-
       The keys of the envs which will be shared with the triggered Workflows.
-
 
       **FORMAT** Seperate the keys with new line. E.g:
 
