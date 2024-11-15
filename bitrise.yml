@@ -20,12 +20,7 @@ workflows:
     before_run:
     - audit-this-step
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-        run_if: |-
-          {{enveq "ERRCHECK_DISABLE" ""}}
-    - go-test:
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
     - path::./:
         inputs:
         - workflows: $TEST_WORKFLOWS
