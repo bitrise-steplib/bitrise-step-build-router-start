@@ -4,7 +4,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   - BITRISE_STEP_ID: build-router-start
-  - BITRISE_STEP_VERSION: "0.9.0"
+  - BITRISE_STEP_VERSION: 0.9.0
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/bitrise-step-build-router-start.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
   - TEST_WORKFLOWS: $TEST_WORKFLOWS
@@ -20,12 +20,7 @@ workflows:
     before_run:
     - audit-this-step
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-        run_if: |-
-          {{enveq "ERRCHECK_DISABLE" ""}}
-    - go-test:
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
     - path::./:
         inputs:
         - workflows: $TEST_WORKFLOWS
