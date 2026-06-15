@@ -55,15 +55,18 @@ type buildResponse struct {
 }
 
 // Pipeline ...
+// The pipeline show endpoint (GET /apps/{slug}/pipelines/{pipeline-id}) returns the pipeline
+// object directly, not wrapped in a "data" envelope like the build endpoints. The pipeline ID
+// is the build slug returned by the trigger endpoint.
 type Pipeline struct {
-	Slug   string `json:"slug"`
+	ID     string `json:"id"`
 	Status string `json:"status"`
 	Name   string `json:"name"`
 }
 
 // IsRunning ...
 func (pipeline Pipeline) IsRunning() bool {
-	return pipeline.Status == "on_hold" || pipeline.Status == "running" || pipeline.Status == ""
+	return pipeline.Status == "initializing" || pipeline.Status == "on_hold" || pipeline.Status == "running" || pipeline.Status == ""
 }
 
 // IsSuccessful ...
@@ -81,10 +84,6 @@ func (pipeline Pipeline) IsAborted() bool {
 	return pipeline.Status == "aborted"
 }
 
-type pipelineResponse struct {
-	Data Pipeline `json:"data"`
-}
-
 type hookInfo struct {
 	Type string `json:"type"`
 }
@@ -95,10 +94,12 @@ type startRequest struct {
 }
 
 // StartResponse ...
+// Note: the top-level "slug" field of the trigger response is the app slug, not a build or
+// pipeline identifier. For both workflow and pipeline triggers the identifier to track is
+// "build_slug" (for pipelines this build slug is also the pipeline ID).
 type StartResponse struct {
 	Status            string `json:"status"`
 	Message           string `json:"message"`
-	Slug              string `json:"slug"`
 	BuildSlug         string `json:"build_slug"`
 	BuildNumber       int    `json:"build_number"`
 	BuildURL          string `json:"build_url"`
@@ -240,7 +241,7 @@ func (app App) GetBuild(buildSlug string) (build Build, err error) {
 }
 
 // GetPipeline ...
-func (app App) GetPipeline(pipelineSlug string) (pipeline Pipeline, err error) {
+func (app App) GetPipeline(pipelineSlug string) (_ Pipeline, err error) {
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/pipelines/%s", app.BaseURL, app.Slug, pipelineSlug), nil)
 	if err != nil {
 		return Pipeline{}, err
@@ -275,11 +276,11 @@ func (app App) GetPipeline(pipelineSlug string) (pipeline Pipeline, err error) {
 		return Pipeline{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
 	}
 
-	var pipelineResponse pipelineResponse
-	if err := json.Unmarshal(respBody, &pipelineResponse); err != nil {
+	var pipeline Pipeline
+	if err := json.Unmarshal(respBody, &pipeline); err != nil {
 		return Pipeline{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
 	}
-	return pipelineResponse.Data, nil
+	return pipeline, nil
 }
 
 // StartBuild triggers a new build for the given workflow.

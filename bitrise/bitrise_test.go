@@ -83,7 +83,8 @@ func TestApp_GetPipeline(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
 		require.Equal(t, "/v0.1/apps/app-slug/pipelines/pipeline-slug", req.URL.Path)
 		require.Equal(t, "token access-token", req.Header.Get("Authorization"))
-		_, _ = writer.Write([]byte(`{"data":{"slug":"pipeline-slug","status":"running","name":"my-pipeline"}}`))
+		// The pipeline show endpoint returns the pipeline object directly (no "data" envelope).
+		_, _ = writer.Write([]byte(`{"id":"pipeline-slug","status":"running","name":"my-pipeline"}`))
 	}))
 	defer server.Close()
 
@@ -91,7 +92,7 @@ func TestApp_GetPipeline(t *testing.T) {
 
 	got, err := app.GetPipeline("pipeline-slug")
 	require.NoError(t, err)
-	require.Equal(t, Pipeline{Slug: "pipeline-slug", Status: "running", Name: "my-pipeline"}, got)
+	require.Equal(t, Pipeline{ID: "pipeline-slug", Status: "running", Name: "my-pipeline"}, got)
 }
 
 func TestApp_StartPipeline_SetsPipelineID(t *testing.T) {
@@ -100,7 +101,8 @@ func TestApp_StartPipeline_SetsPipelineID(t *testing.T) {
 		var sr startRequest
 		require.NoError(t, json.NewDecoder(req.Body).Decode(&sr))
 		require.NoError(t, json.Unmarshal(sr.BuildParams, &captured))
-		_, _ = writer.Write([]byte(`{"status":"ok","slug":"new-pipeline-slug","triggered_pipeline":"my-pipeline"}`))
+		// The trigger response's top-level "slug" is the app slug; "build_slug" is the pipeline ID.
+		_, _ = writer.Write([]byte(`{"status":"ok","slug":"app-slug","build_slug":"new-pipeline-slug","triggered_pipeline":"my-pipeline"}`))
 	}))
 	defer server.Close()
 
@@ -109,7 +111,8 @@ func TestApp_StartPipeline_SetsPipelineID(t *testing.T) {
 	// Original params carry a workflow_id which must be cleared when triggering a pipeline.
 	got, err := app.StartPipeline("my-pipeline", json.RawMessage(`{"workflow_id":"primary","branch":"main"}`), "42", nil)
 	require.NoError(t, err)
-	require.Equal(t, "new-pipeline-slug", got.Slug)
+	require.Equal(t, "new-pipeline-slug", got.BuildSlug)
+	require.Equal(t, "my-pipeline", got.TriggeredPipeline)
 
 	require.Equal(t, "my-pipeline", captured["pipeline_id"])
 	require.NotContains(t, captured, "workflow_id")

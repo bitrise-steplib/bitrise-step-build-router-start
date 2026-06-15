@@ -88,11 +88,12 @@ func main() {
 			if err != nil {
 				failf("Failed to start pipeline, error: %s", err)
 			}
-			if startedPipeline.Slug == "" {
+			// For a pipeline trigger the build slug is the pipeline ID used to poll its status.
+			if startedPipeline.BuildSlug == "" {
 				failf("Pipeline was not started. This could mean that manual build approval is enabled for this project and it's blocking this step from starting pipelines.")
 			}
-			pipelineSlugs = append(pipelineSlugs, startedPipeline.Slug)
-			log.Printf("- %s started (https://app.bitrise.io/build/%s)", pl, startedPipeline.Slug)
+			pipelineSlugs = append(pipelineSlugs, startedPipeline.BuildSlug)
+			log.Printf("- %s started (https://app.bitrise.io/app/%s/pipelines/%s)", pl, cfg.AppSlug, startedPipeline.BuildSlug)
 		}
 	}
 
@@ -173,10 +174,10 @@ func main() {
 			log.Donef("- %s %s", pipeline.Name, pipeline.Status)
 		case pipeline.IsFailed():
 			log.Errorf("- %s failed", pipeline.Name)
-			abortAll(pipeline.Slug, "failed")
+			abortAll(pipeline.ID, "failed")
 		case pipeline.IsAborted():
 			log.Warnf("- %s aborted", pipeline.Name)
-			abortAll(pipeline.Slug, "aborted")
+			abortAll(pipeline.ID, "aborted")
 		}
 	}
 
