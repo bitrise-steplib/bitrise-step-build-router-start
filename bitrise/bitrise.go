@@ -54,6 +54,37 @@ type buildResponse struct {
 	Data Build `json:"data"`
 }
 
+// Pipeline ...
+type Pipeline struct {
+	Slug   string `json:"slug"`
+	Status string `json:"status"`
+	Name   string `json:"name"`
+}
+
+// IsRunning ...
+func (pipeline Pipeline) IsRunning() bool {
+	return pipeline.Status == "on_hold" || pipeline.Status == "running" || pipeline.Status == ""
+}
+
+// IsSuccessful ...
+func (pipeline Pipeline) IsSuccessful() bool {
+	return pipeline.Status == "succeeded" || pipeline.Status == "succeeded_with_abort"
+}
+
+// IsFailed ...
+func (pipeline Pipeline) IsFailed() bool {
+	return pipeline.Status == "failed"
+}
+
+// IsAborted ...
+func (pipeline Pipeline) IsAborted() bool {
+	return pipeline.Status == "aborted"
+}
+
+type pipelineResponse struct {
+	Data Pipeline `json:"data"`
+}
+
 type hookInfo struct {
 	Type string `json:"type"`
 }
@@ -67,10 +98,12 @@ type startRequest struct {
 type StartResponse struct {
 	Status            string `json:"status"`
 	Message           string `json:"message"`
+	Slug              string `json:"slug"`
 	BuildSlug         string `json:"build_slug"`
 	BuildNumber       int    `json:"build_number"`
 	BuildURL          string `json:"build_url"`
 	TriggeredWorkflow string `json:"triggered_workflow"`
+	TriggeredPipeline string `json:"triggered_pipeline"`
 }
 
 type buildAbortParams struct {
@@ -206,13 +239,69 @@ func (app App) GetBuild(buildSlug string) (build Build, err error) {
 	return buildResponse.Data, nil
 }
 
-// StartBuild ...
-func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNumber string, environments []Environment) (startResponse StartResponse, err error) {
+// GetPipeline ...
+func (app App) GetPipeline(pipelineSlug string) (pipeline Pipeline, err error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/v0.1/apps/%s/pipelines/%s", app.BaseURL, app.Slug, pipelineSlug), nil)
+	if err != nil {
+		return Pipeline{}, err
+	}
+
+	req.Header.Add("Authorization", "token "+app.AccessToken)
+
+	retryReq, err := retryablehttp.FromRequest(req)
+	if err != nil {
+		return Pipeline{}, fmt.Errorf("failed to create retryable request: %s", err)
+	}
+
+	client := NewRetryableClient(app.IsDebugRetryTimings)
+
+	resp, err := client.Do(retryReq)
+	if err != nil {
+		return Pipeline{}, err
+	}
+
+	defer func() {
+		if cerr := resp.Body.Close(); cerr != nil && err == nil {
+			err = cerr
+		}
+	}()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Pipeline{}, err
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return Pipeline{}, fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
+	}
+
+	var pipelineResponse pipelineResponse
+	if err := json.Unmarshal(respBody, &pipelineResponse); err != nil {
+		return Pipeline{}, fmt.Errorf("failed to decode response, body: %s, error: %s", respBody, err)
+	}
+	return pipelineResponse.Data, nil
+}
+
+// StartBuild triggers a new build for the given workflow.
+func (app App) StartBuild(workflow string, buildParams json.RawMessage, buildNumber string, environments []Environment) (StartResponse, error) {
+	return app.startBuild("workflow_id", workflow, buildParams, buildNumber, environments)
+}
+
+// StartPipeline triggers a new build for the given pipeline.
+func (app App) StartPipeline(pipeline string, buildParams json.RawMessage, buildNumber string, environments []Environment) (StartResponse, error) {
+	return app.startBuild("pipeline_id", pipeline, buildParams, buildNumber, environments)
+}
+
+func (app App) startBuild(targetKey, targetID string, buildParams json.RawMessage, buildNumber string, environments []Environment) (startResponse StartResponse, err error) {
 	var params map[string]interface{}
 	if err := json.Unmarshal(buildParams, &params); err != nil {
 		return StartResponse{}, err
 	}
-	params["workflow_id"] = workflow
+	// The original build params can carry a workflow_id and/or pipeline_id, so clear
+	// both before setting the one we actually want to trigger.
+	delete(params, "workflow_id")
+	delete(params, "pipeline_id")
+	params[targetKey] = targetID
 	params["skip_git_status_report"] = true
 
 	sourceBuildNumber := Environment{
@@ -433,21 +522,83 @@ func (app App) AbortBuild(buildSlug string, abortReason string) error {
 	return nil
 }
 
-// WaitForBuilds ...
+// AbortPipeline ...
+func (app App) AbortPipeline(pipelineSlug string, abortReason string) error {
+	b, err := json.Marshal(buildAbortParams{
+		AbortReason:       abortReason,
+		AbortWithSucces:   false,
+		SkipNotifications: true,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to marshal abort params: %w", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/v0.1/apps/%s/pipelines/%s/abort", app.BaseURL, app.Slug, pipelineSlug), bytes.NewReader(b))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Add("Authorization", "token "+app.AccessToken)
+
+	retryReq, err := retryablehttp.FromRequest(req)
+	if err != nil {
+		return fmt.Errorf("failed to create retryable request: %w", err)
+	}
+
+	retryClient := NewRetryableClient(app.IsDebugRetryTimings)
+
+	resp, err := retryClient.Do(retryReq)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Warnf("Failed to close response body: %s", err)
+		}
+	}()
+
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("failed to get response, statuscode: %d, body: %s", resp.StatusCode, respBody)
+	}
+	return nil
+}
+
+// WaitForBuilds waits for the given builds to finish.
 func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(build Build)) error {
+	return app.WaitForBuildsAndPipelines(buildSlugs, nil, statusChangeCallback, nil)
+}
+
+// WaitForBuildsAndPipelines polls the given builds and pipelines in a single loop until all of
+// them finish. The matching status change callback is invoked whenever a build or pipeline
+// transitions to a new status. It returns an error if any build or pipeline failed or was aborted.
+func (app App) WaitForBuildsAndPipelines(
+	buildSlugs []string,
+	pipelineSlugs []string,
+	buildStatusChangeCallback func(build Build),
+	pipelineStatusChangeCallback func(pipeline Pipeline),
+) error {
 	failed := false
-	status := map[string]string{}
+	buildStatuses := map[string]string{}
+	pipelineStatuses := map[string]string{}
 	for {
 		running := 0
+
 		for _, buildSlug := range buildSlugs {
 			build, err := app.GetBuild(buildSlug)
 			if err != nil {
 				return fmt.Errorf("failed to get build info, error: %s", err)
 			}
 
-			if status[buildSlug] != build.StatusText {
-				statusChangeCallback(build)
-				status[buildSlug] = build.StatusText
+			if buildStatuses[buildSlug] != build.StatusText {
+				if buildStatusChangeCallback != nil {
+					buildStatusChangeCallback(build)
+				}
+				buildStatuses[buildSlug] = build.StatusText
 			}
 
 			if build.IsRunning() {
@@ -461,13 +612,39 @@ func (app App) WaitForBuilds(buildSlugs []string, statusChangeCallback func(buil
 
 			buildSlugs = remove(buildSlugs, buildSlug)
 		}
+
+		for _, pipelineSlug := range pipelineSlugs {
+			pipeline, err := app.GetPipeline(pipelineSlug)
+			if err != nil {
+				return fmt.Errorf("failed to get pipeline info, error: %s", err)
+			}
+
+			if pipelineStatuses[pipelineSlug] != pipeline.Status {
+				if pipelineStatusChangeCallback != nil {
+					pipelineStatusChangeCallback(pipeline)
+				}
+				pipelineStatuses[pipelineSlug] = pipeline.Status
+			}
+
+			if pipeline.IsRunning() {
+				running++
+				continue
+			}
+
+			if pipeline.IsFailed() || pipeline.IsAborted() {
+				failed = true
+			}
+
+			pipelineSlugs = remove(pipelineSlugs, pipelineSlug)
+		}
+
 		if running == 0 {
 			break
 		}
 		time.Sleep(time.Second * 3)
 	}
 	if failed {
-		return fmt.Errorf("at least one build failed or aborted")
+		return fmt.Errorf("at least one build or pipeline failed or aborted")
 	}
 	return nil
 }
