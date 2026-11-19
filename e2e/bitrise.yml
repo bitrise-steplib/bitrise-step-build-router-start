@@ -1,0 +1,38 @@
+format_version: "11"
+default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
+
+# The step starts builds in the Bitrise app that runs it (BITRISE_APP_SLUG). On Unified CI, that's the unified-ci app,
+# so the Workflow started here has to exist in that app's bitrise.yml.
+#
+# BITRISE_API_TOKEN is a secret of the unified-ci app, the same token its own pull-intermediate-files e2e trigger uses.
+# It's not listed under app envs: Unified CI's secretsgenerator would look it up in GCP Secret Manager, and a missing
+# secret there would override the inherited value with an empty one. To run these tests locally, define
+# BITRISE_API_TOKEN, BITRISE_APP_SLUG, BITRISE_BUILD_SLUG and BITRISE_BUILD_NUMBER in your .bitrise.secrets.yml.
+
+workflows:
+  test_start_and_wait_for_workflow:
+    description: |-
+      Starts a Workflow of the unified-ci app with shared envs, waits for it, and checks the exported build slug.
+      It doesn't check that the started build received the shared envs: the unified-ci app has no Workflow for that.
+      Unit tests cover how the shared envs are collected.
+    envs:
+    - TEST_WORKFLOW: textfile_generator
+    - ENV_1: "1"
+    - ENV_2: "2"
+    steps:
+    - path::./:
+        inputs:
+        - access_token: $BITRISE_API_TOKEN
+        - workflows: $TEST_WORKFLOW
+        - environment_key_list: |-
+            ENV_1
+            $ENV_2
+        - wait_for_builds: "true"
+        - abort_on_fail: "yes"
+        - verbose: "yes"
+    - git::https://github.com/bitrise-steplib/bitrise-step-check-step-outputs.git@main:
+        title: Check outputs
+        is_always_run: true
+        inputs:
+        - envs: |-
+            ROUTER_STARTED_BUILD_SLUGS

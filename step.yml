@@ -69,10 +69,10 @@ inputs:
     title: Bitrise Access Token
     summary: Your access token
     description: |
-        Your access token
+      Your access token
 
-        To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io),
-        go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
+      To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io),
+      go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.
     is_required: true
     is_expand: true
     is_sensitive: true
@@ -89,7 +89,7 @@ inputs:
     description: |-
       The keys of the envs which will be shared with the triggered Workflows.
 
-      **FORMAT** Seperate the keys with new line. E.g:
+      **FORMAT** Separate the keys with new line. E.g:
 
       `ENV_1`
 
@@ -112,10 +112,10 @@ inputs:
     title: The path of the build artifacts
     summary: The path that the build artifacts will be saved to if the **Wait for builds** input is set to `true`.
     description: |
-        The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`.
+      The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`.
 
-        Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows.
-        The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!
+      Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows.
+      The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!
     is_required: false
     is_sensitive: false
 - abort_on_fail: "no"
