@@ -68,6 +68,12 @@ func Test_createEnvs(t *testing.T) {
 			},
 		},
 	}
+	// createEnvs reads the values of the listed keys from the environment.
+	t.Setenv("ENV_1", "1")
+	t.Setenv("ENV_2", "2")
+	t.Setenv("ENV_3", "3")
+	t.Setenv("ENV_4", "4")
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := createEnvs(tt.environmentKeys); !reflect.DeepEqual(got, tt.want) {
