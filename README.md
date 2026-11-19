@@ -1,96 +1,137 @@
 # Bitrise Start Build
 
-Starts the given workflows in the same app.
+[![Step changelog](https://shields.io/github/v/release/bitrise-steplib/bitrise-step-build-router-start?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-steplib/bitrise-step-build-router-start/releases)
 
-## How to use this Step
+Starts a new build with the specified Workflow(s).
 
-Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
-and call `bitrise run test`.
+<details>
+<summary>Description</summary>
 
-*Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
+The Step starts a new build of the same app with specified Workflow(s). On its own, the Step can be used to start multiple builds that run in parallel. In combination with the **Bitrise Wait for Build** Step, you can also add additional Steps to run in parallel while the triggered builds are running. For an example, check out our [Start builds from a parent Workflow](https://devcenter.bitrise.io/en/steps-and-workflows/generic-workflow-recipes/start--parallel--builds-from-the-workflow.html##) Workflow Recipe.
+You can put this Step in a Workflow that is triggered by a code push or pull request and use this Step to trigger multiple other builds at the same time.
 
-Step by step:
+To do that, you need multiple concurrencies - at least two! You also need a Personal Access Token to use the Step: [check out our guide](https://devcenter.bitrise.io/getting-started/account-security/#generating-personal-access-tokens-manually) on how to generate the token.
 
-1. Open up your Terminal / Command Line
-2. `git clone` the repository
-3. `cd` into the directory of the step (the one you just `git clone`d)
-5. Create a `.bitrise.secrets.yml` file in the same directory of `bitrise.yml` - the `.bitrise.secrets.yml` is a git ignored file, you can store your secrets in
-6. Check the `bitrise.yml` file for any secret you should set in `.bitrise.secrets.yml`
-  * Best practice is to mark these options with something like `# define these in your .bitrise.secrets.yml`, in the `app:envs` section.
-7. Once you have all the required secret parameters in your `.bitrise.secrets.yml` you can just run this step with the [bitrise CLI](https://github.com/bitrise-io/bitrise): `bitrise run test`
+If manual build approval is enabled for the project, this step won't be able to start new builds automatically.
 
-An example `.bitrise.secrets.yml` file:
+### Configuring the Step
 
+Before you run a build with this Step, make sure you have your Personal Access Token stored in a [Secret Environment Variable](https://devcenter.bitrise.io/builds/env-vars-secret-env-vars/#adding-a-secret-env-var).
+
+Note that all builds you trigger using this Step will have the same build number!
+
+   1. Set up at least two Workflows in the Workflow Editor: one will contain the Step, the other will be triggered by the Step.
+     You can set up as many Workflows as you wish: your number of concurrencies limit the number of Workflows you can run simultaneously.
+  2. Add the **Bitrise Start Build** Step to the part of the Workflow where you want to trigger another build.
+  3. Add the Secret Env Var storing your Personal Access Token to the **Bitrise Access Token** input of the **Bitrise Start Build** Step: click the **Select secret variable** button, and choose the key you created.
+  4. Find the **Workflows** input of the **Bitrise Start Build** Step, and add the Workflow(s) you want to run.
+  5. In the **Environments to share** input, add Environment Variables (Env Vars) that you want to share between the builds triggered by the Step.
+  6. (Optional) You can set the **Wait for builds** input to `true` if you would like to pause the current build until the triggered build(s) are finished.
+  7. (Optional) You can add any Step you would like to run in parallel while the triggered Workflow(s) are running in the parent Workflow.
+     Make sure to add the **Bitrise Wait for Build** Step to the end of Workflow.
+  8. Add the Secret Env Var storing your Personal Access Token to the **Bitrise Access Token** input of the **Bitrise Wait for Build** Step: click the **Select secret variable** button, and choose the key you created.
+  9. In the **Build slugs** input, define the builds for the Step.
+     The build slugs you need are stored by the **Bitrise Start Build** Step in the `$ROUTER_STARTED_BUILD_SLUGS` Env Var. As long as the builds defined by the slugs are running, the Step will hold the build it is running in. The build will fail if any of the builds included in the Step fail.
+  10. Optionally, you can save the build artifacts from the builds and configure the Step to abort all builds if any of the builds fail:
+     - In **The path of the build artifacts** input, set where you'd like to save the artifacts.
+       The value of the input must be an actual, existing path, ending with `/`.
+     - Set the **Abort all builds if one fails** input to either `yes` or `no`.
+     Please note that the build artifacts of child Workflows - Workflows triggered by this Step - will be only available if the child Workflow contains a **Deploy to Bitrise.io** Step.
+
+### Troubleshooting
+
+- Make sure you have both the **Bitrise Start Build** and the **Bitrise Wait for Build** Steps in the right place in your initial Workflow.
+- Always check all your builds: if your concurrencies are taken up by other builds, this Step cannot start new ones.
+- Your Personal Access Token can expire! Make sure it's still valid - without it, you can't start new builds with this Step.
+
+### Useful links
+
+- [Starting parallel builds with a single Workflow](https://devcenter.bitrise.io/builds/triggering-builds/trigger-multiple-workflows/)
+- [Start builds from a parent Workflow](https://devcenter.bitrise.io/en/steps-and-workflows/generic-workflow-recipes/start--parallel--builds-from-the-workflow.html##)
+
+### Related Steps
+
+- [Bitrise Wait for Build](https://www.bitrise.io/integrations/steps/build-router-wait)
+- [Bitrise Run](https://www.bitrise.io/integrations/steps/bitrise-run)
+- [Build Status Change](https://www.bitrise.io/integrations/steps/build-status-change)
+</details>
+
+## 🧩 Get started
+
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/steps/adding-steps-to-a-workflow.html).
+
+You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
+
+### Start builds and wait for them
+
+Start two Workflows in parallel, share an env with them, and wait for both to finish. The step fails if any of them fails, and aborts the others.
+
+```yaml
+steps:
+- build-router-start:
+    inputs:
+    - access_token: $BITRISE_TOKEN
+    - workflows: |-
+        unit_tests
+        ui_tests
+    - environment_key_list: MY_SHARED_ENV
+    - wait_for_builds: "true"
+    - abort_on_fail: "yes"
 ```
-envs:
-- A_SECRET_PARAM_ONE: the value for secret one
-- A_SECRET_PARAM_TWO: the value for secret two
+
+### Start builds, run other steps, then wait
+
+Start a Workflow, run other steps of the parent Workflow while it runs, then wait for it with the **Bitrise Wait for Build** step.
+
+```yaml
+steps:
+- build-router-start:
+    inputs:
+    - access_token: $BITRISE_TOKEN
+    - workflows: ui_tests
+- script:
+    inputs:
+    - content: echo "Running in parallel with ui_tests"
+- build-router-wait:
+    inputs:
+    - access_token: $BITRISE_TOKEN
+    - buildslugs: $ROUTER_STARTED_BUILD_SLUGS
 ```
 
-## How to create your own step
 
-1. Create a new git repository for your step (**don't fork** the *step template*, create a *new* repository)
-2. Copy the [step template](https://github.com/bitrise-steplib/step-template) files into your repository
-3. Fill the `step.sh` with your functionality
-4. Wire out your inputs to `step.yml` (`inputs` section)
-5. Fill out the other parts of the `step.yml` too
-6. Provide test values for the inputs in the `bitrise.yml`
-7. Run your step with `bitrise run test` - if it works, you're ready
+## ⚙️ Configuration
 
-__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
+<details>
+<summary>Inputs</summary>
 
-**NOTE:**
+| Key | Description | Flags | Default |
+| --- | --- | --- | --- |
+| `access_token` | Your access token  To acquire a `Personal Access Token` for your user, sign in with that user on [bitrise.io](https://bitrise.io), go to your `Account Settings` page, and select the [Security tab](https://www.bitrise.io/me/profile#/security) on the left side.  | required, sensitive |  |
+| `workflows` | The Workflow(s) to start. One Workflow per line. | required |  |
+| `environment_key_list` | The keys of the envs which will be shared with the triggered Workflows.  **FORMAT** Separate the keys with new line. E.g:  `ENV_1`  `ENV_2`  `ENV_3` |  |  |
+| `wait_for_builds` | Should the Step wait for the builds to be finished? |  | `false` |
+| `build_artifacts_save_path` | The path where build artifacts will be saved to if the **Wait for builds** input is set to `true`.  Note that when this Step triggers a Workflow, the artifacts of the triggered Workflow are only available to the Workflow that contains this Step, and not other Workflows. The triggered Workflow MUST have a **Deploy to Bitrise.io** Step to deploy build artifacts!  |  |  |
+| `abort_on_fail` | Abort all started builds if any build fails | required | `no` |
+| `verbose` | You can enable the verbose log for easier debugging. | required | `no` |
+</details>
 
-If you want to use your step in your project's `bitrise.yml`:
+<details>
+<summary>Outputs</summary>
 
-1. git push the step into it's repository
-2. reference it in your `bitrise.yml` with the `git::PUBLIC-GIT-CLONE-URL@BRANCH` step reference style:
+| Environment Variable | Description |
+| --- | --- |
+| `ROUTER_STARTED_BUILD_SLUGS` | Newline separated list of started build slugs. |
+</details>
 
-```
-- git::https://github.com/user/my-step.git@branch:
-   title: My step
-   inputs:
-   - my_input_1: "my value 1"
-   - my_input_2: "my value 2"
-```
+## 🙋 Contributing
 
-You can find more examples of step reference styles
-in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml#L65).
+We welcome [pull requests](https://github.com/bitrise-steplib/bitrise-step-build-router-start/pulls) and [issues](https://github.com/bitrise-steplib/bitrise-step-build-router-start/issues) against this repository.
 
-## How to contribute to this Step
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://docs.bitrise.io/en/bitrise-ci/bitrise-cli/running-your-first-local-build-with-the-cli.html).
 
-1. Fork this repository
-2. `git clone` it
-3. Create a branch you'll work on
-4. To use/test the step just follow the **How to use this Step** section
-5. Do the changes you want to
-6. Run/test the step before sending your contribution
-  * You can also test the step in your `bitrise` project, either on your Mac or on [bitrise.io](https://www.bitrise.io)
-  * You just have to replace the step ID in your project's `bitrise.yml` with either a relative path, or with a git URL format
-  * (relative) path format: instead of `- original-step-id:` use `- path::./relative/path/of/script/on/your/Mac:`
-  * direct git URL format: instead of `- original-step-id:` use `- git::https://github.com/user/step.git@branch:`
-  * You can find more example of alternative step referencing at: https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml
-7. Once you're done just commit your changes & create a Pull Request
+Note: this step's end-to-end tests (defined in e2e/bitrise.yml) are working with secrets which are intentionally not stored in this repo. External contributors won't be able to run those tests. Don't worry, if you open a PR with your contribution, we will help with running tests and make sure that they pass.
 
 
-## Share your own Step
+Learn more about developing steps:
 
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
-
-1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
-1. Run: `bitrise run test` to test the step
-1. Run: `bitrise run audit-this-step` to audit the `step.yml`
-1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
-   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
-   of your step!)
-1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
-1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
-
-That's all ;)
-
-## Trigger a new release
-
-- __merge every code changes__ to the `master` branch
-- __push the new version tag__ to the `master` branch
+- [Create your own step](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/developing-your-own-bitrise-step/developing-a-new-step.html)

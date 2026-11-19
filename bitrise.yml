@@ -1,57 +1,45 @@
-format_version: 5
+format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
-app:
-  envs:
-  - BITRISE_STEP_ID: build-router-start
-  - BITRISE_STEP_VERSION: 0.9.0
-  - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/bitrise-step-build-router-start.git
-  - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-  - TEST_WORKFLOWS: $TEST_WORKFLOWS
-  - ACCESS_TOKEN: $ACCESS_TOKEN
+include:
+- repository: steps-check
+  branch: master
+  path: steps.bitrise.yml
 
 workflows:
-  test:
-    envs:
-    - ENV_1: "1"
-    - ENV_2: "2"
-    - ENV_3: "3"
-    - ENV_4: "4"
-    before_run:
-    - audit-this-step
+  # check: included from steps-check/steps.bitrise.yml
+
+  e2e:
     steps:
-    - git::https://github.com/bitrise-steplib/steps-check.git: { }
+    - git::https://github.com/bitrise-steplib/steps-check.git:
+        inputs:
+        - workflow: e2e
+
+  sample:
+    description: |-
+      Starts a Workflow of an existing Bitrise app and waits for it, for local debugging.
+
+      The step reads the app, build slug and build number of the parent build from the environment, the same way it
+      does in a Bitrise build. Define these envs in your .bitrise.secrets.yml:
+      - SAMPLE_APP_SLUG: the app to start the Workflow in
+      - SAMPLE_BUILD_SLUG: a finished build of that app, its build params are reused for the started build
+      - SAMPLE_WORKFLOW: the Workflow to start
+      - BITRISE_TOKEN: a Personal Access Token with access to the app
+    envs:
+    - BITRISE_APP_SLUG: $SAMPLE_APP_SLUG
+    - BITRISE_BUILD_SLUG: $SAMPLE_BUILD_SLUG
+    - BITRISE_BUILD_NUMBER: "1"
+    steps:
     - path::./:
         inputs:
-        - workflows: $TEST_WORKFLOWS
-        - access_token: $ACCESS_TOKEN
+        - access_token: $BITRISE_TOKEN
+        - workflows: $SAMPLE_WORKFLOW
         - wait_for_builds: "true"
-        - environment_key_list: "ENV_1\nENV_2\n$ENV_3\n$ENV_4\n"
         - verbose: "yes"
 
-  test_shared_envs:
+  generate_readme:
     steps:
-    - script@1.1.5:
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main:
         inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            # fail if any commands fails
-            set -e
-
-            echo "ENV_1 = $ENV_1 ENV_2 = $ENV_2 ENV_3 = $ENV_3 ENV_4 = $ENV_4"
-            if [[ "$ENV_1" != "1" ]] || [[ "$ENV_2" != "2" ]] || [[ "$ENV_3" != "3" ]] || [[ "$ENV_4" != "4" ]] ; then
-              exit 1;
-            else
-              echo "got all of the exported environments"
-            fi
-
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
-  audit-this-step:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/usr/bin/env bash
-            set -ex
-            stepman audit --step-yml ./step.yml
+        - contrib_section: docs/contribution.md
+        - example_section: docs/examples.md

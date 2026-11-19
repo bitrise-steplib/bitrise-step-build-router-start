@@ -142,7 +142,7 @@ func main() {
 }
 
 func createEnvs(environmentKeys string) []bitrise.Environment {
-	environmentKeys = strings.Replace(environmentKeys, "$", "", -1)
+	environmentKeys = strings.ReplaceAll(environmentKeys, "$", "")
 	environmentsKeyList := strings.Split(environmentKeys, "\n")
 
 	var environments []bitrise.Environment
