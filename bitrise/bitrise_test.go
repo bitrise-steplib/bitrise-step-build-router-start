@@ -1,6 +1,7 @@
 package bitrise
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -49,4 +50,71 @@ func TestApp_GetBuild(t *testing.T) {
 			require.Equal(t, tt.want, got, "App.GetBuild()")
 		})
 	}
+}
+
+func TestPipeline_StatusHelpers(t *testing.T) {
+	tests := []struct {
+		status     string
+		running    bool
+		successful bool
+		failed     bool
+		aborted    bool
+	}{
+		{status: "on_hold", running: true},
+		{status: "running", running: true},
+		{status: "", running: true},
+		{status: "succeeded", successful: true},
+		{status: "succeeded_with_abort", successful: true},
+		{status: "failed", failed: true},
+		{status: "aborted", aborted: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.status, func(t *testing.T) {
+			p := Pipeline{Status: tt.status}
+			require.Equal(t, tt.running, p.IsRunning(), "IsRunning")
+			require.Equal(t, tt.successful, p.IsSuccessful(), "IsSuccessful")
+			require.Equal(t, tt.failed, p.IsFailed(), "IsFailed")
+			require.Equal(t, tt.aborted, p.IsAborted(), "IsAborted")
+		})
+	}
+}
+
+func TestApp_GetPipeline(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+		require.Equal(t, "/v0.1/apps/app-slug/pipelines/pipeline-slug", req.URL.Path)
+		require.Equal(t, "token access-token", req.Header.Get("Authorization"))
+		// The pipeline show endpoint returns the pipeline object directly (no "data" envelope).
+		_, _ = writer.Write([]byte(`{"id":"pipeline-slug","status":"running","name":"my-pipeline"}`))
+	}))
+	defer server.Close()
+
+	app := App{BaseURL: server.URL, Slug: "app-slug", AccessToken: "access-token", IsDebugRetryTimings: true}
+
+	got, err := app.GetPipeline("pipeline-slug")
+	require.NoError(t, err)
+	require.Equal(t, Pipeline{ID: "pipeline-slug", Status: "running", Name: "my-pipeline"}, got)
+}
+
+func TestApp_StartPipeline_SetsPipelineID(t *testing.T) {
+	var captured map[string]interface{}
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, req *http.Request) {
+		var sr startRequest
+		require.NoError(t, json.NewDecoder(req.Body).Decode(&sr))
+		require.NoError(t, json.Unmarshal(sr.BuildParams, &captured))
+		// The trigger response's top-level "slug" is the app slug; "build_slug" is the pipeline ID.
+		_, _ = writer.Write([]byte(`{"status":"ok","slug":"app-slug","build_slug":"new-pipeline-slug","triggered_pipeline":"my-pipeline"}`))
+	}))
+	defer server.Close()
+
+	app := App{BaseURL: server.URL, Slug: "app-slug", AccessToken: "access-token", IsDebugRetryTimings: true}
+
+	// Original params carry a workflow_id which must be cleared when triggering a pipeline.
+	got, err := app.StartPipeline("my-pipeline", json.RawMessage(`{"workflow_id":"primary","branch":"main"}`), "42", nil)
+	require.NoError(t, err)
+	require.Equal(t, "new-pipeline-slug", got.BuildSlug)
+	require.Equal(t, "my-pipeline", got.TriggeredPipeline)
+
+	require.Equal(t, "my-pipeline", captured["pipeline_id"])
+	require.NotContains(t, captured, "workflow_id")
+	require.Equal(t, "main", captured["branch"])
 }

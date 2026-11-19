@@ -8,6 +8,7 @@ app:
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/bitrise-steplib/bitrise-step-build-router-start.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
   - TEST_WORKFLOWS: $TEST_WORKFLOWS
+  - TEST_PIPELINES: $TEST_PIPELINES
   - ACCESS_TOKEN: $ACCESS_TOKEN
 
 workflows:
@@ -24,6 +25,7 @@ workflows:
     - path::./:
         inputs:
         - workflows: $TEST_WORKFLOWS
+        - pipelines: $TEST_PIPELINES
         - access_token: $ACCESS_TOKEN
         - wait_for_builds: "true"
         - environment_key_list: "ENV_1\nENV_2\n$ENV_3\n$ENV_4\n"
